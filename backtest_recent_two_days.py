@@ -67,8 +67,11 @@ def run_backtest_for_days(strike_mode="OTM-1"):
         
         lvl = NiftySREngine.calculate_levels(p_high, p_low, p_close)
         dow = curr_d.weekday()
-        # Days to expiry (Thursday is dow 3)
-        dte = max(0.25, (3 - dow) % 7 + 0.5) / 365.0
+        # Tuesday Expiry (matching Angel One active NFO contract series: 27OCT2026 Tuesday)
+        days_to_tue = (1 - dow) % 7
+        if days_to_tue == 0:
+            days_to_tue = 0.5
+        dte = (days_to_tue + 0.5) / 365.0
 
         day_bars_df = m5_df[m5_df['date_str'] == d_str]
         if len(day_bars_df) < 3:

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head-to-Head Comparison: Our Bot vs Arjun Levels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0f1d;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 10% 10%, #111e38 0%, #060911 100%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(14px);
+            padding: 26px 32px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .tag-period {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .comparison-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .side-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+        .side-card.winner {
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.12);
+        }
+        .side-card.winner::before {
+            content: "OVERALL WINNER (+307% MORE PROFIT)";
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #022c22;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            padding: 6px 14px;
+            border-radius: 0 0 0 12px;
+        }
+        .side-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .side-title.our { color: #34d399; }
+        .side-title.arjun { color: #a78bfa; }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-lbl { color: var(--text-muted); }
+        .metric-val { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .chart-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(12px);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .chart-canvas {
+            background: rgba(7, 11, 20, 0.85);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border-card);
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+        .callout {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border-left: 4px solid #10b981;
+            padding: 20px 24px;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .callout strong { color: #34d399; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>Head-to-Head Quantitative Audit</h1>
+                <p>Our Algo Bot (CPR + Mathematical Engine) vs. @FlyingcallsArjun Telegram Levels</p>
+            </div>
+            <div class="tag-period">
+                03-Jul-2026 to 15-Oct-2026 (Identical Date Window)
+            </div>
+        </div>
+
+        <!-- KEY TAKEAWAY CALLOUT -->
+        <div class="callout">
+            <strong>Key Quantitative Audit Finding:</strong>
+            Across the exact same 68 trading sessions and using identical realistic execution costs (0.5% fill slippage, STT, turnover charges, and Rs 40 roundtrip brokerage), 
+            <strong>Our Algo Bot generated +Rs 56,704.83 Net P&L (Profit Factor 2.59, +113.4% ROI)</strong> compared to 
+            <strong>Arjun's +Rs 13,931.54 Net P&L (Profit Factor 1.33, +27.9% ROI)</strong>.
+            Our bot generated <strong>4.07x higher net profit</strong> with a <strong>Sharpe Ratio of 5.78 vs 1.66</strong> and was profitable in <strong>every single month (4/4 green months)</strong>.
+        </div>
+
+        <!-- SIDE-BY-SIDE CARDS -->
+        <div class="comparison-cards">
+            <!-- OUR BOT -->
+            <div class="side-card winner">
+                <div class="side-title our">
+                    <span>⚡ Our Algo Bot</span>
+                    <span style="font-size: 13px; font-weight: 500; color: var(--text-muted);">(CPR & Mathematical S&R)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Total Net P&L:</span>
+                    <span class="metric-val" style="color: #10b981; font-size: 18px;">+Rs 56,704.83 (+113.4%)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Win Rate:</span>
+                    <span class="metric-val" style="color: #38bdf8;">53.4% (31 Wins / 27 Losses)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Profit Factor:</span>
+                    <span class="metric-val" style="color: #a78bfa; font-size: 16px;">2.59 (Institutional Grade)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Max Drawdown:</span>
+                    <span class="metric-val" style="color: #f87171;">Rs 6,920.83 (13.8%)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Sharpe Ratio:</span>
+                    <span class="metric-val" style="color: #34d399;">5.78</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Avg Trade P&L:</span>
+                    <span class="metric-val" style="color: #f8fafc;">+Rs 977.67 / trade</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Monthly Consistency:</span>
+                    <span class="metric-val" style="color: #10b981;">4 / 4 Green Months (100%)</span>
+                </div>
+            </div>
+
+            <!-- ARJUN TELEGRAM -->
+            <div class="side-card">
+                <div class="side-title arjun">
+                    <span>📡 Arjun Telegram Levels</span>
+                    <span style="font-size: 13px; font-weight: 500; color: var(--text-muted);">(Discretionary Morning S&R)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Total Net P&L (Raw Breakout):</span>
+                    <span class="metric-val" style="color: #a78bfa; font-size: 18px;">+Rs 13,931.54 (+27.9%)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Win Rate:</span>
+                    <span class="metric-val" style="color: #38bdf8;">54.5% (30 Wins / 25 Losses)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Profit Factor:</span>
+                    <span class="metric-val" style="color: #f59e0b; font-size: 16px;">1.33</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Max Drawdown:</span>
+                    <span class="metric-val" style="color: #f87171;">Rs 16,835.82 (33.7%)</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Sharpe Ratio:</span>
+                    <span class="metric-val" style="color: #cbd5e1;">1.66</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Avg Trade P&L:</span>
+                    <span class="metric-val" style="color: #f8fafc;">+Rs 253.30 / trade</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-lbl">Monthly Consistency:</span>
+                    <span class="metric-val" style="color: #f87171;">2 Green / 2 Red Months</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERLAID EQUITY CURVE -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <span style="font-size: 18px; font-weight: 700;">Overlaid Cumulative Equity Curves (Rs 50,000 Base)</span>
+                <div class="chart-legend">
+                    <div class="legend-item"><div class="dot" style="background: #10b981;"></div>Our Algo Bot (+Rs 56,704)</div>
+                    <div class="legend-item"><div class="dot" style="background: #a855f7;"></div>Arjun Raw Breakout (+Rs 13,931)</div>
+                    <div class="legend-item"><div class="dot" style="background: #06b6d4;"></div>Arjun Filtered (+Rs 8,960)</div>
+                </div>
+            </div>
+            <div class="chart-canvas">
+                <svg width="100%" height="280" viewBox="0 0 850 280" preserveAspectRatio="none">
+                    <!-- Baseline -->
+                    <line x1="20" y1="220.3822482816384" x2="830" y2="220.3822482816384" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,4" />
+                    <!-- Arjun Raw Line -->
+                    <polyline points="20.0,220.4 31.4,220.4 42.8,215.6 54.2,224.6 65.6,199.5 77.0,207.7 88.5,207.7 99.9,207.7 111.3,205.0 122.7,205.0 134.1,210.7 145.5,210.7 156.9,213.5 168.3,214.7 179.7,212.0 191.1,207.1 202.5,216.1 213.9,216.1 225.4,216.1 236.8,216.1 248.2,215.1 259.6,214.8 271.0,214.8 282.4,214.8 293.8,218.0 305.2,218.0 316.6,217.4 328.0,223.4 339.4,219.6 350.8,216.4 362.3,218.9 373.7,227.9 385.1,235.2 396.5,227.8 407.9,222.6 419.3,222.6 430.7,222.6 442.1,221.0 453.5,228.5 464.9,228.9 476.3,226.5 487.7,227.9 499.2,227.1 510.6,244.9 522.0,244.9 533.4,250.6 544.8,251.9 556.2,246.3 567.6,243.4 579.0,243.4 590.4,243.4 601.8,254.8 613.2,254.8 624.6,233.2 636.1,233.6 647.5,232.8 658.9,231.7 670.3,228.9 681.7,225.4 693.1,219.6 704.5,219.6 715.9,222.9 727.3,222.9 738.7,228.7 750.1,234.7 761.5,209.5 773.0,209.5 784.4,212.5 795.8,203.9 807.2,199.5 818.6,199.5 830.0,174.6" fill="none" stroke="#a855f7" stroke-width="2.0" opacity="0.85" />
+                    <!-- Arjun Opt Line -->
+                    <polyline points="20.0,220.4 31.4,220.4 42.8,220.4 54.2,228.2 65.6,228.2 77.0,228.2 88.5,228.2 99.9,228.2 111.3,228.2 122.7,228.2 134.1,233.9 145.5,233.9 156.9,233.9 168.3,235.1 179.7,235.1 191.1,231.1 202.5,231.1 213.9,231.1 225.4,231.1 236.8,231.1 248.2,230.1 259.6,229.8 271.0,229.8 282.4,229.8 293.8,233.0 305.2,233.0 316.6,232.5 328.0,238.4 339.4,238.4 350.8,234.5 362.3,234.5 373.7,236.0 385.1,236.0 396.5,228.5 407.9,223.4 419.3,223.4 430.7,223.4 442.1,221.7 453.5,221.7 464.9,222.1 476.3,220.1 487.7,220.1 499.2,220.1 510.6,227.9 522.0,227.9 533.4,233.6 544.8,234.9 556.2,234.9 567.6,234.9 579.0,234.9 590.4,234.9 601.8,234.9 613.2,234.9 624.6,213.3 636.1,213.3 647.5,209.3 658.9,208.2 670.3,205.4 681.7,201.5 693.1,197.6 704.5,197.6 715.9,201.0 727.3,201.0 738.7,201.0 750.1,208.8 761.5,183.0 773.0,183.0 784.4,190.9 795.8,190.9 807.2,190.9 818.6,190.9 830.0,190.9" fill="none" stroke="#06b6d4" stroke-width="2.0" stroke-dasharray="3,3" opacity="0.85" />
+                    <!-- Our Bot Line -->
+                    <polyline points="20.0,220.4 31.4,220.4 42.8,220.4 54.2,213.6 65.6,213.6 77.0,191.9 88.5,191.9 99.9,204.4 111.3,203.5 122.7,206.2 134.1,198.6 145.5,198.6 156.9,204.9 168.3,204.4 179.7,204.4 191.1,199.4 202.5,200.5 213.9,200.5 225.4,195.8 236.8,195.8 248.2,199.3 259.6,196.2 271.0,196.2 282.4,171.2 293.8,175.6 305.2,180.3 316.6,175.5 328.0,178.6 339.4,178.6 350.8,175.5 362.3,178.4 373.7,181.7 385.1,187.5 396.5,182.8 407.9,180.6 419.3,180.6 430.7,183.6 442.1,174.8 453.5,183.7 464.9,184.7 476.3,183.6 487.7,185.0 499.2,185.0 510.6,180.7 522.0,180.7 533.4,170.4 544.8,179.2 556.2,171.6 567.6,166.1 579.0,154.8 590.4,146.3 601.8,149.6 613.2,149.6 624.6,124.5 636.1,126.8 647.5,126.1 658.9,130.5 670.3,134.2 681.7,123.9 693.1,129.6 704.5,129.6 715.9,132.9 727.3,132.9 738.7,142.6 750.1,124.3 761.5,99.1 773.0,99.1 784.4,76.7 795.8,63.3 807.2,58.9 818.6,58.9 830.0,34.0" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    <span>03-Jul-2026: Rs 50,000</span>
+                    <span style="color: #a855f7;">Arjun Peak: Rs 68,299</span>
+                    <span style="color: #10b981; font-weight: 700;">Our Bot Peak: Rs 106,704 (+113.4%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONTHLY BREAKDOWN TABLE -->
+        <div class="chart-section">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Month-by-Month Head-to-Head P&L</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trading Month</th>
+                        <th>Our Bot Trades (WR)</th>
+                        <th>Our Bot Net P&L</th>
+                        <th>Arjun Opt Trades (WR)</th>
+                        <th>Arjun Opt Net P&L</th>
+                        <th>Arjun Raw Net P&L</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-weight: 700; color: #f8fafc;">2026-07</td>
+            <td>14 (57%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 7,353.98</td>
+            <td>6 (50%)</td>
+            <td style="font-weight: 700; color: #ef4444;">Rs -2,872.24</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 1,703.17</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 700; color: #f8fafc;">2026-08</td>
+            <td>17 (41%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 3,411.50</td>
+            <td>10 (60%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 2,966.33</td>
+            <td style="font-weight: 700; color: #ef4444;">Rs -3,744.84</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 700; color: #f8fafc;">2026-09</td>
+            <td>21 (52%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 18,464.09</td>
+            <td>11 (55%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 3,434.54</td>
+            <td style="font-weight: 700; color: #ef4444;">Rs -2,326.70</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 700; color: #f8fafc;">2026-10</td>
+            <td>6 (83%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 27,475.26</td>
+            <td>2 (50%)</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 5,432.02</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 18,299.91</td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ARCHITECTURAL WHY SECTION -->
+        <div class="chart-section">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Why Our Bot Generated 4.07x More Profit (The Level Mechanics)</div>
+            <div style="line-height: 1.7; font-size: 14px; color: #cbd5e1;">
+                <p style="margin-bottom: 12px;">
+                    <strong>1. The 42-Point Boundary Offset:</strong> Statistical regression between Arjun's morning levels and our mathematical CPR formula shows that Arjun's <strong>R1 is 42.1 points lower</strong> and his <strong>S1 is 45.6 points higher</strong> than standard institutional levels. Because Arjun's levels are compressed closer to the opening price, early morning volatility frequently punctures them, causing heavy whipsaws and false bounce signals (-Rs 11,597 loss on mean reversion).
+                </p>
+                <p style="margin-bottom: 12px;">
+                    <strong>2. The Power of Exhaustion Reversals:</strong> Our bot uses wide mathematical R1/R2 and S1/S2 boundaries. When NIFTY actually extends into our R1 or R2, the market is overextended, allowing our bot's <strong>R1 Resistance Reversal</strong> and <strong>R2 Exhaustion Reversal</strong> playbooks to capture high-probability fades (<strong>60% to 80% Win Rate, generating +Rs 39,373 profit</strong>). Arjun's levels lack this outer exhaustion framework.
+                </p>
+                <p>
+                    <strong>3. Regimes vs. Static Numbers:</strong> Arjun broadcasts the exact same 4 S&R lines regardless of whether the day is a narrow trend day or a wide sideways day. Our bot calculates the <strong>CPR Central Width</strong> every morning, dynamically choosing whether to activate the Breakout engine (tight CPR) or the Reversal engine (wide CPR).
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Options Backtest Report — October 2026 Month-to-Date</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #090d16;
+            --surface: #111827;
+            --surface-card: #162032;
+            --border: #233044;
+            --primary: #00f2fe;
+            --accent: #4facfe;
+            --green: #10b981;
+            --red: #f43f5e;
+            --text-main: #f9fafb;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 30px 24px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 28px 32px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+        .pill {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 242, 254, 0.4);
+        }
+        .kpi-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .kpi-val { font-size: 26px; font-weight: 800; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+        .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+        .pnl-pos { color: var(--green); }
+        .pnl-neg { color: var(--red); }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #192336;
+            color: #94a3b8;
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-target { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-sl { background: rgba(244, 63, 94, 0.2); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .badge-eod { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📊 NIFTY OPTIONS BACKTEST — OCTOBER 2026 (MTD)</h1>
+                <p>Evaluation Period: <strong>01-Oct-2026 to 21-Oct-2026</strong> | Strategy: 5-Minute Institutional S&R Engine | 1 Lot (65 Qty) | Starting Capital: ₹50,000</p>
+            </div>
+            <div>
+                <span class="pill">STATUS: VERIFIED (13 TRADING DAYS)</span>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-lbl">Total Net P&L</div>
+                <div class="kpi-val pnl-pos">₹+34,582.00</div>
+                <div class="kpi-sub">ROI: <strong>+69.16%</strong> on ₹50,000 Capital</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Win Rate</div>
+                <div class="kpi-val pnl-pos">66.7%</div>
+                <div class="kpi-sub"><strong>8 Wins</strong> / 4 Losses (12 Trades)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Profit Factor</div>
+                <div class="kpi-val pnl-pos">5.33</div>
+                <div class="kpi-sub">Gross Win: ₹42,565 | Gross Loss: ₹7,983</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Realized Risk-Reward</div>
+                <div class="kpi-val">2.67</div>
+                <div class="kpi-sub">Avg Win: +₹5,321 | Avg Loss: -₹1,996</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Max Peak Drawdown</div>
+                <div class="kpi-val pnl-neg">₹4,449.70</div>
+                <div class="kpi-sub">8.90% of Starting Capital</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Final Account Equity</div>
+                <div class="kpi-val pnl-pos">₹84,582.00</div>
+                <div class="kpi-sub">Started at ₹50,000.00</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="card">
+                <h2>📈 Equity Growth Curve (October 2026)</h2>
+                <div style="height: 320px;">
+                    <canvas id="equityChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📅 Daily P&L Breakdown</h2>
+                <div style="height: 320px;">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Playbook Performance Breakdown (October 2026)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Playbook Strategy</th>
+                            <th>Trades</th>
+                            <th>Wins / Losses</th>
+                            <th>Win Rate</th>
+                            <th>Net P&L</th>
+                            <th>Avg / Trade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+    <tr>
+        <td><strong>S1 Support Breakdown</strong></td>
+        <td>5</td>
+        <td>3W / 2L</td>
+        <td><strong>60.0%</strong></td>
+        <td class="pnl-pos"><strong>₹+14,288.51</strong></td>
+        <td>₹+2,857.70</td>
+    </tr>
+    
+    <tr>
+        <td><strong>R1 Resistance Breakout</strong></td>
+        <td>4</td>
+        <td>3W / 1L</td>
+        <td><strong>75.0%</strong></td>
+        <td class="pnl-pos"><strong>₹+14,052.23</strong></td>
+        <td>₹+3,513.06</td>
+    </tr>
+    
+    <tr>
+        <td><strong>R2 Exhaustion Reversal</strong></td>
+        <td>2</td>
+        <td>1W / 1L</td>
+        <td><strong>50.0%</strong></td>
+        <td class="pnl-pos"><strong>₹+4,907.43</strong></td>
+        <td>₹+2,453.72</td>
+    </tr>
+    
+    <tr>
+        <td><strong>S2 Flush Breakdown</strong></td>
+        <td>1</td>
+        <td>1W / 0L</td>
+        <td><strong>100.0%</strong></td>
+        <td class="pnl-pos"><strong>₹+1,333.83</strong></td>
+        <td>₹+1,333.83</td>
+    </tr>
+    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Complete October 2026 Trade-by-Trade Ledger</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>Contract</th>
+                            <th>Playbook</th>
+                            <th>Entry Prem</th>
+                            <th>Exit Prem</th>
+                            <th>Points</th>
+                            <th>Net P&L</th>
+                            <th>Capital</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+    <tr>
+        <td>#1</td>
+        <td><strong>2026-10-01</strong></td>
+        <td>09:40</td>
+        <td>12:45</td>
+        <td><strong>NIFTY 22550 PE</strong></td>
+        <td>S1 Support Breakdown</td>
+        <td>₹43.58</td>
+        <td>₹162.55</td>
+        <td>+118.97</td>
+        <td class="pnl-pos"><strong>₹+7,670.63</strong></td>
+        <td>₹57,670.63</td>
+        <td><span class="badge badge-target">TARGET 1:3 HIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#2</td>
+        <td><strong>2026-10-05</strong></td>
+        <td>09:50</td>
+        <td>12:05</td>
+        <td><strong>NIFTY 22600 PE</strong></td>
+        <td>R2 Exhaustion Reversal</td>
+        <td>₹111.25</td>
+        <td>₹229.54</td>
+        <td>+118.29</td>
+        <td class="pnl-pos"><strong>₹+7,618.67</strong></td>
+        <td>₹65,289.30</td>
+        <td><span class="badge badge-target">TARGET 1:3 HIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#3</td>
+        <td><strong>2026-10-05</strong></td>
+        <td>13:40</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 22550 CE</strong></td>
+        <td>R1 Resistance Breakout</td>
+        <td>₹129.39</td>
+        <td>₹117.93</td>
+        <td>-11.46</td>
+        <td class="pnl-neg"><strong>₹-806.95</strong></td>
+        <td>₹64,482.35</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#4</td>
+        <td><strong>2026-10-06</strong></td>
+        <td>09:30</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 22600 CE</strong></td>
+        <td>R1 Resistance Breakout</td>
+        <td>₹112.58</td>
+        <td>₹176.36</td>
+        <td>+63.78</td>
+        <td class="pnl-pos"><strong>₹+4,079.47</strong></td>
+        <td>₹68,561.82</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#5</td>
+        <td><strong>2026-10-07</strong></td>
+        <td>10:30</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 22650 PE</strong></td>
+        <td>S2 Flush Breakdown</td>
+        <td>₹71.83</td>
+        <td>₹93.24</td>
+        <td>+21.41</td>
+        <td class="pnl-pos"><strong>₹+1,333.83</strong></td>
+        <td>₹69,895.64</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#6</td>
+        <td><strong>2026-10-09</strong></td>
+        <td>09:25</td>
+        <td>14:15</td>
+        <td><strong>NIFTY 22400 CE</strong></td>
+        <td>R1 Resistance Breakout</td>
+        <td>₹162.12</td>
+        <td>₹279.91</td>
+        <td>+117.79</td>
+        <td class="pnl-pos"><strong>₹+7,579.61</strong></td>
+        <td>₹77,475.25</td>
+        <td><span class="badge badge-target">TARGET 1:3 HIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#7</td>
+        <td><strong>2026-10-12</strong></td>
+        <td>10:55</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 22400 PE</strong></td>
+        <td>S1 Support Breakdown</td>
+        <td>₹100.52</td>
+        <td>₹154.88</td>
+        <td>+54.37</td>
+        <td class="pnl-pos"><strong>₹+3,469.96</strong></td>
+        <td>₹80,945.21</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#8</td>
+        <td><strong>2026-10-13</strong></td>
+        <td>09:40</td>
+        <td>14:30</td>
+        <td><strong>NIFTY 22550 PE</strong></td>
+        <td>R2 Exhaustion Reversal</td>
+        <td>₹104.54</td>
+        <td>₹63.70</td>
+        <td>-40.84</td>
+        <td class="pnl-neg"><strong>₹-2,711.24</strong></td>
+        <td>₹78,233.97</td>
+        <td><span class="badge badge-sl">STOP LOSS</span></td>
+    </tr>
+    
+    <tr>
+        <td>#9</td>
+        <td><strong>2026-10-14</strong></td>
+        <td>13:10</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 22550 PE</strong></td>
+        <td>S1 Support Breakdown</td>
+        <td>₹69.60</td>
+        <td>₹43.68</td>
+        <td>-25.92</td>
+        <td class="pnl-neg"><strong>₹-1,738.46</strong></td>
+        <td>₹76,495.51</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#10</td>
+        <td><strong>2026-10-16</strong></td>
+        <td>09:55</td>
+        <td>15:10</td>
+        <td><strong>NIFTY 23050 CE</strong></td>
+        <td>R1 Resistance Breakout</td>
+        <td>₹168.13</td>
+        <td>₹218.47</td>
+        <td>+50.34</td>
+        <td class="pnl-pos"><strong>₹+3,200.10</strong></td>
+        <td>₹79,695.61</td>
+        <td><span class="badge badge-eod">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td>#11</td>
+        <td><strong>2026-10-19</strong></td>
+        <td>09:25</td>
+        <td>09:30</td>
+        <td><strong>NIFTY 23000 PE</strong></td>
+        <td>S1 Support Breakdown</td>
+        <td>₹123.72</td>
+        <td>₹82.69</td>
+        <td>-41.03</td>
+        <td class="pnl-neg"><strong>₹-2,725.97</strong></td>
+        <td>₹76,969.64</td>
+        <td><span class="badge badge-sl">STOP LOSS</span></td>
+    </tr>
+    
+    <tr>
+        <td>#12</td>
+        <td><strong>2026-10-19</strong></td>
+        <td>09:55</td>
+        <td>13:45</td>
+        <td><strong>NIFTY 23050 PE</strong></td>
+        <td>S1 Support Breakdown</td>
+        <td>₹119.48</td>
+        <td>₹237.69</td>
+        <td>+118.21</td>
+        <td class="pnl-pos"><strong>₹+7,612.35</strong></td>
+        <td>₹84,581.98</td>
+        <td><span class="badge badge-target">TARGET 1:3 HIT</span></td>
+    </tr>
+    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Equity Chart
+        const ctxEq = document.getElementById('equityChart').getContext('2d');
+        new Chart(ctxEq, {
+            type: 'line',
+            data: {
+                labels: ['Start (₹50k)', '2026-10-01 09:40', '2026-10-05 09:50', '2026-10-05 13:40', '2026-10-06 09:30', '2026-10-07 10:30', '2026-10-09 09:25', '2026-10-12 10:55', '2026-10-13 09:40', '2026-10-14 13:10', '2026-10-16 09:55', '2026-10-19 09:25', '2026-10-19 09:55'],
+                datasets: [{
+                    label: 'Account Equity (₹)',
+                    data: [50000.0, 57670.63, 65289.3, 64482.35, 68561.82, 69895.65, 77475.26000000001, 80945.22, 78233.98000000001, 76495.52, 79695.62, 76969.65, 84582.0],
+                    borderColor: '#00f2fe',
+                    backgroundColor: 'rgba(0, 242, 254, 0.12)',
+                    fill: true,
+                    tension: 0.25,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#00f2fe',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '₹' + v.toLocaleString() } }
+                }
+            }
+        });
+
+        // Daily P&L Chart
+        const ctxDaily = document.getElementById('dailyChart').getContext('2d');
+        const dailyVals = [7670.63, 6811.72, 4079.47, 1333.83, 7579.61, 3469.96, -2711.24, -1738.46, 3200.1, 4886.38];
+        new Chart(ctxDaily, {
+            type: 'bar',
+            data: {
+                labels: ['2026-10-01', '2026-10-05', '2026-10-06', '2026-10-07', '2026-10-09', '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-16', '2026-10-19'],
+                datasets: [{
+                    label: 'Daily P&L (₹)',
+                    data: dailyVals,
+                    backgroundColor: dailyVals.map(v => v >= 0 ? '#10b981' : '#f43f5e'),
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => '₹' + v.toLocaleString() } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

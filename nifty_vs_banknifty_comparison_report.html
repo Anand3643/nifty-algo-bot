@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY vs BANKNIFTY Options Backtest Comparison</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #080d19;
+            --bg-card: rgba(16, 24, 40, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 10% 10%, #0f1d38 0%, #050811 100%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1240px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(14px);
+            padding: 26px 32px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .side-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            backdrop-filter: blur(12px);
+        }
+        .side-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-lbl { color: var(--text-muted); }
+        .metric-val { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 25px;
+        }
+        .callout {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border-left: 4px solid var(--accent-emerald);
+            padding: 20px 24px;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-card);
+        }
+        td { padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>NIFTY 50 vs BANKNIFTY Strategy Comparison</h1>
+                <p>NIFTY (65 Qty) vs. BANKNIFTY (30 Units / 1 Lot) | Period: 03-Jul-2026 to 15-Oct-2026</p>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 13px;">
+                Identical 68 Sessions
+            </div>
+        </div>
+
+        <div class="callout">
+            <strong>Key Portfolio Finding:</strong>
+            Both indices thrive under our CPR & S&R Engine with distinct complementary strengths:
+            <strong>BANKNIFTY (30 Units) delivers a superior 64.9% Win Rate</strong> due to clean momentum breaks, while 
+            <strong>NIFTY (65 Qty) generates higher Net Profit (+Rs 56,704 vs +Rs 34,912)</strong> with a massive <strong>2.59 Profit Factor</strong>.
+            Trading both simultaneously delivers <strong>+Rs 91,616.93 Net Profit (+91.6% ROI)</strong> with a stellar <strong>5.76 Sharpe Ratio</strong> and 59.7% daily win rate!
+        </div>
+
+        <div class="grid-cards">
+            <!-- NIFTY -->
+            <div class="side-card">
+                <div class="side-title" style="color: #10b981;">
+                    <span>📈 NIFTY 50 (65 Qty / 1 Lot)</span>
+                </div>
+                <div class="metric-row"><span class="metric-lbl">Total Net P&L:</span><span class="metric-val" style="color: #10b981;">+Rs 56,704.83 (+113.4%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Win Rate:</span><span class="metric-val" style="color: #38bdf8;">53.4% (31W / 27L)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Profit Factor:</span><span class="metric-val" style="color: #a78bfa;">2.59 (Institutional)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Max Drawdown:</span><span class="metric-val" style="color: #f87171;">Rs 6,920.83 (13.8%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Avg Trade:</span><span class="metric-val">+Rs 977.67 / trade</span></div>
+                <div class="metric-row"><span class="metric-lbl">Stop Loss / Target:</span><span class="metric-val">SL 50 pts / TP 200 pts (1:4 RR)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Expiry Day:</span><span class="metric-val">Thursday Weekly</span></div>
+            </div>
+
+            <!-- BANKNIFTY -->
+            <div class="side-card">
+                <div class="side-title" style="color: #06b6d4;">
+                    <span>🏦 BANKNIFTY (30 Units / 1 Lot)</span>
+                </div>
+                <div class="metric-row"><span class="metric-lbl">Total Net P&L:</span><span class="metric-val" style="color: #06b6d4;">+Rs 34,912.10 (+69.8%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Win Rate:</span><span class="metric-val" style="color: #10b981;">64.9% (48W / 26L)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Profit Factor:</span><span class="metric-val" style="color: #a78bfa;">1.67</span></div>
+                <div class="metric-row"><span class="metric-lbl">Max Drawdown:</span><span class="metric-val" style="color: #f87171;">Rs 10,233.97 (20.5%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Avg Trade:</span><span class="metric-val">+Rs 471.79 / trade</span></div>
+                <div class="metric-row"><span class="metric-lbl">Stop Loss / Target:</span><span class="metric-val">SL 70 pts / TP 210 pts (1:3 RR)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Expiry Day:</span><span class="metric-val">Wednesday Weekly</span></div>
+            </div>
+        </div>
+
+        <!-- OVERLAID EQUITY CURVES -->
+        <div class="section">
+            <div class="sec-title" style="display: flex; justify-content: space-between;">
+                <span>Overlaid Equity Curves (Rs 50,000 Base Each)</span>
+                <div style="display: flex; gap: 20px; font-size: 13px;">
+                    <span style="color: #10b981;">● NIFTY 50 (+Rs 56,704)</span>
+                    <span style="color: #06b6d4;">● BANKNIFTY (+Rs 34,912)</span>
+                </div>
+            </div>
+            <div style="background: rgba(7, 11, 20, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                <svg width="100%" height="280" viewBox="0 0 850 280" preserveAspectRatio="none">
+                    <line x1="20" y1="252.37768848296298" x2="830" y2="252.37768848296298" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,4" />
+                    <polyline points="20.0,252.4 33.1,239.2 46.1,247.7 59.2,241.9 72.3,226.5 85.3,235.0 98.4,235.0 111.5,228.9 124.5,239.3 137.6,239.3 150.6,236.3 163.7,219.0 176.8,226.6 189.8,228.3 202.9,216.2 216.0,216.2 229.0,222.2 242.1,222.2 255.2,209.2 268.2,222.2 281.3,222.2 294.4,219.4 307.4,236.0 320.5,236.0 333.5,233.3 346.6,225.5 359.7,227.0 372.7,227.0 385.8,224.4 398.9,211.3 411.9,208.0 425.0,208.0 438.1,202.2 451.1,199.5 464.2,185.8 477.3,185.8 490.3,185.8 503.4,189.9 516.5,189.9 529.5,178.6 542.6,165.7 555.6,154.8 568.7,153.2 581.8,150.3 594.8,155.5 607.9,151.8 621.0,169.2 634.0,186.2 647.1,162.6 660.2,150.8 673.2,168.3 686.3,165.4 699.4,173.7 712.4,179.8 725.5,164.5 738.5,156.5 751.6,137.9 764.7,135.2 777.7,135.2 790.8,124.5 803.9,105.4 816.9,110.6 830.0,119.3" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" />
+                    <polyline points="20.0,252.4 33.1,252.4 46.1,252.4 59.2,244.5 72.3,219.4 85.3,233.8 98.4,232.8 111.5,235.9 124.5,227.2 137.6,234.4 150.6,233.8 163.7,228.1 176.8,229.3 189.8,229.3 202.9,223.9 216.0,227.9 229.0,224.4 242.1,195.3 255.2,200.5 268.2,205.9 281.3,200.4 294.4,204.0 307.4,200.3 320.5,203.7 333.5,207.5 346.6,214.2 359.7,208.7 372.7,206.2 385.8,209.8 398.9,199.5 411.9,209.8 425.0,211.0 438.1,209.8 451.1,211.3 464.2,211.3 477.3,206.3 490.3,194.4 503.4,204.6 516.5,195.8 529.5,189.4 542.6,176.4 555.6,166.4 568.7,170.3 581.8,141.2 594.8,143.9 607.9,143.0 621.0,148.1 634.0,152.4 647.1,140.5 660.2,147.1 673.2,150.9 686.3,162.2 699.4,141.0 712.4,111.7 725.5,85.8 738.5,70.2 751.6,65.2 764.7,65.2 777.7,36.3 790.8,36.3 803.9,36.3 816.9,36.3 830.0,36.3" fill="none" stroke="#10b981" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    <span>03-Jul-2026: Rs 50,000</span>
+                    <span style="color: #06b6d4;">BANKNIFTY Peak: Rs 84,912</span>
+                    <span style="color: #10b981; font-weight: 700;">NIFTY Peak: Rs 106,704</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMBINED PORTFOLIO CARD -->
+        <div class="section" style="border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 25px rgba(168, 85, 247, 0.1);">
+            <div class="sec-title" style="color: #c084fc;">🚀 Combined Portfolio (Trade Both Together)</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Total Combined Net P&L</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #10b981;">+Rs 91,616.93</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">+91.6% ROI on Rs 1 Lakh Capital</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Daily Win Rate</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #38bdf8;">59.7%</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">37 Green Days / 25 Red Days</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Max Combined Drawdown</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #f87171;">Rs 12,373.89</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Only 12.4% portfolio drawdown</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Portfolio Sharpe Ratio</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #c084fc;">5.76</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Institutional Grade Stability</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

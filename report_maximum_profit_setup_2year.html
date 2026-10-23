@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY 50 Options Algorithm - Maximum Profit Setup (15:00 Close + 15 pt Trail)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f17;
+            color: #f1f5f9;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+        .glass-glow {
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 45%),
+                        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.08), transparent 45%);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- HEADER -->
+        <header class="glass-panel rounded-2xl p-6 glass-glow flex flex-col md:flex-row md:items-center justify-between gap-4 border border-emerald-500/25">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                        🏆 MAXIMUM PROFIT CHAMPION SETUP
+                    </span>
+                    <span class="text-xs font-mono text-slate-400">Backtested: Oct 2024 &ndash; Oct 2026 (492 Trading Sessions)</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-white mt-2 tracking-tight">
+                    NIFTY 50 Options &bull; Maximum Profit Setup
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">
+                    ATM Strike &bull; Current Weekly &bull; SL 50 pts &bull; TP 200 pts (1:4 RR) &bull; 14:00 Entry Cutoff &bull; <b>15:00 EOD Close</b> &bull; <b>Dynamic 15 pt Trail (Trigger +80)</b> &bull; Stop-On-Loss Daily Halt
+                </p>
+            </div>
+            <div class="flex flex-col md:items-end justify-center">
+                <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Net P&L (1 Lot = 65 Qty)</div>
+                <div class="text-3xl font-mono font-extrabold text-emerald-400 mt-0.5 tracking-tight">&#8377;+4,90,464.29</div>
+                <div class="text-xs font-medium text-emerald-500 font-mono mt-0.5">+980.9% ROI on &#8377;50k Capital &bull; Calmar 42.33x</div>
+            </div>
+        </header>
+
+        <!-- KPI STATS CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Win Rate</div>
+                <div class="text-2xl font-mono font-bold text-white mt-1">62.82%</div>
+                <div class="text-xs text-emerald-400 font-medium mt-1">196W / 116L (312 trades)</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Profit Factor</div>
+                <div class="text-2xl font-mono font-bold text-emerald-400 mt-1">3.30</div>
+                <div class="text-xs text-slate-400 mt-1">Wins / Losses</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Max Drawdown</div>
+                <div class="text-2xl font-mono font-bold text-rose-400 mt-1">&#8377;11,586.74</div>
+                <div class="text-xs text-emerald-400 mt-1">Only 23.2% of &#8377;50k</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Calmar Ratio</div>
+                <div class="text-2xl font-mono font-bold text-indigo-400 mt-1">42.33x</div>
+                <div class="text-xs text-slate-400 mt-1">Return / Drawdown</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Average Trade</div>
+                <div class="text-2xl font-mono font-bold text-emerald-400 mt-1">&#8377;+1,572.00</div>
+                <div class="text-xs text-slate-400 mt-1">Net post-slippage & costs</div>
+            </div>
+            <div class="glass-panel rounded-xl p-4 border border-slate-800">
+                <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Square-Off Time</div>
+                <div class="text-2xl font-bold text-amber-400 mt-1">15:00 IST</div>
+                <div class="text-xs text-slate-400 mt-1">Dodges 15:00-15:15 theta crush</div>
+            </div>
+        </div>
+
+        <!-- MAIN CHART: EQUITY CURVE COMPARISON -->
+        <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h3 class="text-lg font-bold text-white">Cumulative Net P&L Growth vs Baseline</h3>
+                    <p class="text-xs text-slate-400">Comparing Baseline Champion (+&#8377;406.5k) against Maximum Profit Setup (+&#8377;490.5k)</p>
+                </div>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-500"></span> Baseline (+&#8377;406.5k)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> Maximum Profit (+&#8377;490.5k)</span>
+                </div>
+            </div>
+            <div id="equityChart" style="height: 420px;"></div>
+        </div>
+
+        <!-- UNDERWATER DRAWDOWN COMPARISON -->
+        <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-white">Underwater Drawdown Profile</h3>
+                <p class="text-xs text-slate-400">Drawdown remains exceptionally low at &#8377;11,586 across 2 complete trading years</p>
+            </div>
+            <div id="ddChart" style="height: 240px;"></div>
+        </div>
+
+        <!-- TWO COLUMNS: PLAYBOOK BREAKDOWN & MONTHLY RETURNS -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- PLAYBOOK PERFORMANCE -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+                <h3 class="text-lg font-bold text-white">Performance by Playbook</h3>
+                <div id="playbookChart" style="height: 320px;"></div>
+            </div>
+
+            <!-- DAY OF WEEK BREAKDOWN -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+                <h3 class="text-lg font-bold text-white">Day of the Week Consistency</h3>
+                <div id="dayChart" style="height: 320px;"></div>
+            </div>
+        </div>
+
+        <!-- MONTHLY PNL BAR CHART -->
+        <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <h3 class="text-lg font-bold text-white">Monthly Net Profit Distribution</h3>
+            <div id="monthlyChart" style="height: 280px;"></div>
+        </div>
+
+        <!-- DETAILED RECENT TRADES LEDGER -->
+        <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-white">Trade Executions Ledger</h3>
+                    <p class="text-xs text-slate-400">Showing last 75 trades (all 312 trades saved in <code class="text-emerald-400 font-mono">trades_maximum_profit_setup_2year.csv</code>)</p>
+                </div>
+                <span class="text-xs font-mono text-slate-500">312 Total Executions</span>
+            </div>
+            <div class="overflow-x-auto max-h-[500px] custom-scroll">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-slate-900/95 backdrop-blur z-10 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider">
+                        <tr>
+                            <th class="py-2.5 px-3">#</th>
+                            <th class="py-2.5 px-3">Date</th>
+                            <th class="py-2.5 px-3">Time</th>
+                            <th class="py-2.5 px-3">Dir</th>
+                            <th class="py-2.5 px-3">Playbook</th>
+                            <th class="py-2.5 px-3">Strike</th>
+                            <th class="py-2.5 px-3">Entry</th>
+                            <th class="py-2.5 px-3">Exit</th>
+                            <th class="py-2.5 px-3">Pts</th>
+                            <th class="py-2.5 px-3">Net P&L</th>
+                            <th class="py-2.5 px-3">Exit Reason</th>
+                            <th class="py-2.5 px-3">Cum P&L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">312</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-10-07 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:35 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22600</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;81.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;76.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-4.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-369.28</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;490,464.29</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">311</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-10-05 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22500</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;108.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;102.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-6.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-495.53</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;490,833.57</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">310</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-10-05 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:50 &rarr; 10:55</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22600</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;111.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;175.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+64.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,129.57</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +66.0 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;491,329.10</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">309</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-10-01 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:00 &rarr; 12:45</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22550</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;45.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;161.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+115.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+7,466.16</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +116.9 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;487,199.53</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">308</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-10-01 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 12:40</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22550</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;43.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;108.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+64.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,161.11</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +65.7 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;479,733.37</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">307</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-30 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:25 &rarr; 14:35</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22750</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;76.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;151.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+74.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,808.45</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +76.1 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;475,572.26</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">306</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-30 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:15 &rarr; 14:35</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22750</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;72.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;151.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+79.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+5,082.26</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +80.3 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;470,763.81</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">305</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-29 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:25 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22700</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;108.0</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;113.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+5.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+312.94</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;465,681.55</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">304</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-28 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">22900</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;117.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;173.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+55.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+3,541.73</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;465,368.61</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">303</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-25 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;148.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;145.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-2.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-223.33</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;461,826.88</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">302</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-24 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:10 &rarr; 13:45</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;47.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;113.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+65.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,224.98</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +66.7 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;462,050.21</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">301</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-23 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:35 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23350</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;68.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;50.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-17.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,209.55</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;457,825.23</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">300</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-22 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23350</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;93.0</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;94.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+1.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+49.76</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;459,034.78</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">299</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-22 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 13:50</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23450</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;106.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;173.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+66.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,270.00</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +68.1 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;458,985.02</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">298</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-21 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23400</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;118.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;97.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-21.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,467.78</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;454,715.02</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">297</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-18 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:00 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23300</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;155.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;130.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-24.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,676.65</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;456,182.80</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">296</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-18 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-blue-500/20 text-blue-300 border-blue-500/30">CE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-Up R1 Polarity Bounce</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23300</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;189.0</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;209.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+20.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,234.36</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;457,859.45</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">295</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-17 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:35 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;34.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;30.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-4.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-315.68</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;456,625.09</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">294</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-16 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:55 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;66.0</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;62.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-3.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-289.81</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;456,940.77</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">293</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-15 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 10:45</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-blue-500/20 text-blue-300 border-blue-500/30">CE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-Up R1 Polarity Bounce</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23450</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;113.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;62.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-50.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-3,363.88</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">STOP LOSS HIT (-50 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;457,230.58</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">292</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-10 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:15 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23450</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;40.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;79.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+39.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,517.75</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;460,594.46</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">291</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-09 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:05 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23450</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;66.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;72.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+5.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+294.37</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;458,076.71</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">290</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-09 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:05 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23500</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;90.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;97.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+6.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+385.33</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;457,782.34</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">289</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-04 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:25 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23900</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;155.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;143.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-11.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-828.56</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;457,397.01</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">288</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-03 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;58.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;119.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+61.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+3,916.21</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;458,225.57</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">287</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-01 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:30 &rarr; 14:05</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;98.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;172.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+73.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,735.54</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +75.2 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;454,309.36</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">286</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-09-01 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24050</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;113.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;141.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+27.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,738.68</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;449,573.82</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">285</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-31 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;108.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;93.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-15.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,041.36</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;447,835.14</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">284</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-27 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:15 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;49.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;47.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-1.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-141.57</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;448,876.50</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">283</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-26 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">13:10 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;71.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;63.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-8.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-613.59</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;449,018.07</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">282</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-25 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;100.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;60.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-39.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-2,647.18</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;449,631.66</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">281</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-24 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:55 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;112.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;160.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+47.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+3,043.37</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;452,278.84</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">280</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-21 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;156.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;143.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-13.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-951.95</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;449,235.47</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">279</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-18 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;100.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;100.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-0.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-76.92</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;450,187.42</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">278</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-18 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:25 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-Down S1 Polarity Rejection</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;105.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;126.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+20.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,278.87</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;450,264.34</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">277</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-13 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24350</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;37.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;43.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+6.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+367.16</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;448,985.47</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">276</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-12 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:45 &rarr; 12:30</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24400</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;80.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;147.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+66.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,256.16</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +67.6 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;448,618.31</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">275</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-10 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24550</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;130.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;111.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-19.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,301.61</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;444,362.15</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">274</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-07 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24600</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;158.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;186.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+28.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,753.33</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;445,663.76</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">273</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-06 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:50 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24650</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;42.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;62.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+20.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,277.97</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;443,910.43</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">272</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-05 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24500</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;70.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;66.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-4.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-346.50</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;442,632.46</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">271</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-08-04 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:30 &rarr; 13:50</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24600</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;113.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;183.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+69.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,468.92</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +71.3 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;442,978.96</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">270</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-31 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-blue-500/20 text-blue-300 border-blue-500/30">CE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-Up R1 Polarity Bounce</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24350</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;194.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;206.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+12.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+708.47</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;438,510.04</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">269</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-30 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;36.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;26.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-9.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-687.13</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;437,801.57</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">268</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-28 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:05 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;91.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;120.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+29.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,846.99</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;438,488.70</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">267</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-28 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;93.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;120.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+26.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,674.55</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;436,641.71</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">266</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-24 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:55 &rarr; 12:25</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23650</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;159.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;107.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-51.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-3,399.16</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">STOP LOSS HIT (-50 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;434,967.16</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">265</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-23 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:10 &rarr; 13:15</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23950</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;55.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;127.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+72.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,668.19</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +73.7 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;438,366.32</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">264</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-23 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:25 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23900</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;37.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;76.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+39.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,517.25</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;433,698.13</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">263</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-22 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:35 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24050</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;84.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;116.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+32.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,059.84</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;431,180.88</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">262</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-22 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;68.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;88.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+19.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,221.73</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;429,121.04</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">261</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-21 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:20 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;106.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;111.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+4.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+215.43</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;427,899.31</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">260</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-20 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:45 &rarr; 14:05</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;123.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;72.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-51.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-3,371.89</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">STOP LOSS HIT (-50 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;427,683.88</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">259</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-16 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:00 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;36.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;97.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+61.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+3,929.18</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;431,055.77</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">258</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-16 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;42.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;64.3</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+22.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,378.22</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;427,126.59</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">257</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-14 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:15 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;111.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;150.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+39.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,504.45</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;425,748.37</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">256</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-14 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-Down S1 Polarity Rejection</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;110.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;150.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+40.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,547.44</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;423,243.92</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">255</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-13 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">13:25 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;110.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;86.0</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-24.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,645.39</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;420,696.48</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">254</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-09 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;59.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;123.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+64.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,116.06</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +65.2 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;422,341.87</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">253</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-08 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:05 &rarr; 13:50</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24250</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;92.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;191.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+98.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+6,363.04</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +100.3 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;418,225.81</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">252</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-08 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 13:50</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24200</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;71.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;152.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+81.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+5,217.35</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +82.4 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;411,862.77</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">251</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-07 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:10 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24500</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;98.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;142.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+43.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+2,788.42</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;406,645.42</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">250</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-07 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:45 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24450</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;96.8</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;114.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+17.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+1,095.33</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;403,857.00</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">249</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-02 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:10 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;60.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;19.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-40.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-2,686.73</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;402,761.67</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">248</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-07-01 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:00 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23950</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;71.4</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;50.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-21.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,423.32</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;405,448.40</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">247</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-30 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:55 &rarr; 11:20</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23900</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;112.5</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;61.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-50.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-3,363.26</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">STOP LOSS HIT (-50 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;406,871.72</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">246</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-30 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:30 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23850</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;90.7</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;104.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+14.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+858.33</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;410,234.98</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">245</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-29 <span class="text-slate-500 text-[10px]">(Mon)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:15 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">S1 Support Breakdown</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23950</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;108.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;122.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+13.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+843.87</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;409,376.65</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">244</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-25 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">10:35 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24150</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;38.2</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;102.7</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+64.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,139.67</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +65.3 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;408,532.78</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">243</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-24 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:55 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;81.6</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;63.4</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-18.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,236.23</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;404,393.11</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">242</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-23 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">11:45 &rarr; 13:30</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24000</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;92.0</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;162.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+70.2</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,497.95</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +71.5 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;405,629.34</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">241</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-23 <span class="text-slate-500 text-[10px]">(Tue)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 11:55</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;95.3</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;159.8</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">+64.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-emerald-400 font-bold">&#8377;+4,126.44</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">TRAILING STOP HIT (Locked +65.7 pts)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;401,131.39</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">240</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-19 <span class="text-slate-500 text-[10px]">(Fri)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:55 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">Gap-and-Go Bearish ORB</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">23950</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;165.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;132.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-32.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-2,182.12</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;397,004.95</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">239</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-18 <span class="text-slate-500 text-[10px]">(Thu)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">09:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R1 Resistance Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24100</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;42.9</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;26.1</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-16.9</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,148.85</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;399,187.07</td>
+    </tr>
+    
+
+    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 transition">
+        <td class="py-2.5 px-3 font-mono text-slate-400 text-xs">238</td>
+        <td class="py-2.5 px-3 text-slate-200 text-xs">2026-06-17 <span class="text-slate-500 text-[10px]">(Wed)</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">12:40 &rarr; 15:00</td>
+        <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">PE</span></td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs">R2 Exhaustion Reversal</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">24050</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;83.1</td>
+        <td class="py-2.5 px-3 text-slate-300 text-xs font-mono">&#8377;62.6</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">-20.5</td>
+        <td class="py-2.5 px-3 font-mono text-xs text-rose-400 font-bold">&#8377;-1,389.48</td>
+        <td class="py-2.5 px-3 text-xs"><span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-rose-500/20 text-rose-300 border-rose-500/30">EOD SQUARE-OFF (15:00)</span></td>
+        <td class="py-2.5 px-3 font-mono text-xs text-slate-200 font-semibold">&#8377;400,335.92</td>
+    </tr>
+    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PLOTLY SCRIPTS -->
+    <script>
+        const darkLayout = {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { family: 'Plus Jakarta Sans', color: '#94a3b8' },
+            margin: { t: 20, r: 20, b: 40, l: 60 },
+            xaxis: {
+                gridcolor: 'rgba(255, 255, 255, 0.05)',
+                zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+            },
+            yaxis: {
+                gridcolor: 'rgba(255, 255, 255, 0.05)',
+                zerolinecolor: 'rgba(255, 255, 255, 0.1)',
+            }
+        };
+
+        const traceBase = {
+            x: ["2024-10-18", "2024-10-23", "2024-10-23", "2024-10-29", "2024-11-11", "2024-11-11", "2024-11-14", "2024-11-22", "2024-11-25", "2024-11-26", "2024-11-27", "2024-11-27", "2024-11-28", "2024-11-29", "2024-12-02", "2024-12-03", "2024-12-04", "2024-12-05", "2024-12-09", "2024-12-09", "2024-12-11", "2024-12-11", "2024-12-12", "2024-12-13", "2024-12-23", "2024-12-23", "2024-12-24", "2024-12-24", "2024-12-26", "2024-12-26", "2024-12-27", "2024-12-27", "2024-12-30", "2025-01-01", "2025-01-02", "2025-01-06", "2025-01-10", "2025-01-14", "2025-01-14", "2025-01-15", "2025-01-16", "2025-01-20", "2025-01-22", "2025-01-23", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-01-31", "2025-02-01", "2025-02-04", "2025-02-13", "2025-02-13", "2025-02-20", "2025-03-04", "2025-03-06", "2025-03-06", "2025-03-07", "2025-03-10", "2025-03-10", "2025-03-12", "2025-03-13", "2025-03-17", "2025-03-17", "2025-03-18", "2025-03-19", "2025-03-21", "2025-03-25", "2025-03-25", "2025-03-28", "2025-04-02", "2025-04-03", "2025-04-03", "2025-04-08", "2025-04-16", "2025-04-16", "2025-04-21", "2025-04-22", "2025-04-22", "2025-04-23", "2025-04-23", "2025-04-25", "2025-04-28", "2025-04-30", "2025-05-02", "2025-05-05", "2025-05-07", "2025-05-07", "2025-05-14", "2025-05-26", "2025-05-26", "2025-05-29", "2025-06-03", "2025-06-04", "2025-06-05", "2025-06-09", "2025-06-10", "2025-06-10", "2025-06-11", "2025-06-11", "2025-06-16", "2025-06-18", "2025-06-24", "2025-06-25", "2025-06-25", "2025-06-26", "2025-06-27", "2025-06-27", "2025-06-30", "2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-08", "2025-07-09", "2025-07-15", "2025-07-16", "2025-07-18", "2025-07-21", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-25", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-04", "2025-08-04", "2025-08-11", "2025-08-11", "2025-08-13", "2025-08-13", "2025-08-14", "2025-08-14", "2025-08-19", "2025-08-19", "2025-08-20", "2025-08-20", "2025-08-21", "2025-08-21", "2025-08-25", "2025-08-25", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-08", "2025-09-09", "2025-09-09", "2025-09-11", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-17", "2025-09-17", "2025-09-18", "2025-09-22", "2025-09-30", "2025-09-30", "2025-10-01", "2025-10-06", "2025-10-07", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-09", "2025-10-10", "2025-10-10", "2025-10-13", "2025-10-14", "2025-10-16", "2025-10-17", "2025-10-20", "2025-10-28", "2025-10-29", "2025-11-03", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-01", "2025-12-04", "2025-12-05", "2025-12-11", "2025-12-11", "2025-12-12", "2025-12-12", "2025-12-15", "2025-12-15", "2025-12-18", "2025-12-18", "2025-12-23", "2025-12-23", "2025-12-24", "2025-12-24", "2026-01-01", "2026-01-01", "2026-01-06", "2026-01-16", "2026-01-16", "2026-01-22", "2026-01-28", "2026-01-28", "2026-01-30", "2026-02-01", "2026-02-09", "2026-02-10", "2026-02-10", "2026-02-11", "2026-02-11", "2026-02-16", "2026-02-16", "2026-02-17", "2026-02-20", "2026-02-23", "2026-02-23", "2026-02-25", "2026-02-26", "2026-03-05", "2026-03-10", "2026-03-12", "2026-03-18", "2026-03-20", "2026-03-20", "2026-03-30", "2026-04-02", "2026-04-06", "2026-04-16", "2026-04-17", "2026-04-17", "2026-04-20", "2026-04-20", "2026-04-21", "2026-04-27", "2026-04-27", "2026-04-28", "2026-05-04", "2026-05-06", "2026-05-06", "2026-05-14", "2026-05-15", "2026-05-15", "2026-05-19", "2026-05-19", "2026-05-20", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-22", "2026-05-26", "2026-05-26", "2026-05-27", "2026-05-29", "2026-05-29", "2026-06-02", "2026-06-03", "2026-06-05", "2026-06-05", "2026-06-09", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-11", "2026-06-16", "2026-06-16", "2026-06-17", "2026-06-17", "2026-06-18", "2026-06-18", "2026-06-19", "2026-06-23", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-25", "2026-06-29", "2026-06-30", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-07", "2026-07-07", "2026-07-08", "2026-07-08", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-16", "2026-07-20", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-22", "2026-07-23", "2026-07-23", "2026-07-24", "2026-07-24", "2026-07-28", "2026-07-28", "2026-07-30", "2026-07-30", "2026-07-31", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-07", "2026-08-10", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-13", "2026-08-17", "2026-08-18", "2026-08-18", "2026-08-21", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-27", "2026-08-31", "2026-08-31", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-04", "2026-09-09", "2026-09-09", "2026-09-10", "2026-09-15", "2026-09-15", "2026-09-16", "2026-09-16", "2026-09-17", "2026-09-17", "2026-09-18", "2026-09-18", "2026-09-21", "2026-09-21", "2026-09-22", "2026-09-22", "2026-09-23", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-09-30", "2026-10-01", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-07", "2026-10-07"],
+            y: [-825.04, 4552.03, 9900.24, 8475.46, 11591.48, 14735.43, 19170.67, 31897.5, 31200.06, 35968.91, 34926.25, 35796.96, 48639.81, 49085.399999999994, 48418.41999999999, 47314.05999999999, 48424.95999999999, 45843.90999999999, 46622.13999999999, 47397.13999999999, 47200.98999999999, 46988.80999999999, 51473.76999999999, 48077.62999999999, 49764.40999999999, 52644.57999999999, 55507.83999999999, 58315.08999999999, 58650.19999999999, 58951.57999999999, 58936.39999999999, 60017.87999999999, 71142.34, 71586.05, 69225.56, 82006.15, 78578.89, 79039.29, 79465.15, 79630.87999999999, 78707.73, 75341.08, 74040.21, 75627.25, 81826.84, 84801.41, 82884.03, 83187.48, 79787.51999999999, 82466.41999999998, 79108.24999999999, 87751.14999999998, 91116.30999999998, 89665.84999999998, 88185.36999999998, 94572.05999999998, 92361.84999999998, 94112.62999999998, 100384.96999999997, 104607.91999999997, 107095.36999999997, 113327.54999999996, 112482.89999999997, 111699.57999999996, 108355.43999999996, 107730.19999999995, 106450.82999999996, 107965.65999999996, 106209.96999999996, 109399.33999999995, 107445.15999999996, 107951.81999999996, 108469.26999999996, 105111.71999999996, 103450.30999999995, 101797.89999999995, 102444.62999999995, 99081.38999999994, 97811.02999999994, 102831.03999999994, 99795.64999999994, 112535.58999999994, 111585.56999999993, 112175.42999999993, 112331.57999999993, 114433.10999999993, 114693.83999999992, 114969.24999999993, 115112.80999999992, 114737.26999999993, 114371.17999999993, 113318.81999999993, 126101.28999999994, 126193.46999999993, 122877.08999999992, 123093.25999999992, 123489.22999999992, 122661.31999999992, 123380.94999999992, 124178.79999999993, 120800.69999999992, 120443.07999999993, 120794.36999999992, 119437.19999999992, 118080.02999999993, 115351.02999999993, 114729.68999999993, 114102.38999999993, 118984.42999999992, 119685.49999999993, 124711.55999999992, 129107.80999999992, 128662.46999999993, 126814.71999999993, 129172.81999999993, 126756.74999999993, 127585.36999999992, 133606.19999999992, 133135.53999999992, 131159.81999999992, 128473.31999999992, 125129.81999999992, 130139.33999999992, 138163.32999999993, 135850.15999999992, 135023.10999999993, 141672.88999999993, 139134.66999999993, 138022.97999999992, 134658.93999999992, 131294.72999999992, 133725.93999999992, 136133.9699999999, 136690.3999999999, 137211.1499999999, 135398.4699999999, 134776.59999999992, 133688.7099999999, 133529.2099999999, 133659.4599999999, 135530.6799999999, 136288.5299999999, 137065.9899999999, 141942.8599999999, 138575.1199999999, 141421.7199999999, 146196.9299999999, 143495.4499999999, 147106.1199999999, 150713.87999999992, 152615.31999999992, 154991.69999999992, 157422.20999999993, 156358.02999999994, 155248.32999999993, 155089.61999999994, 154934.15999999995, 152984.78999999995, 155259.82999999996, 155312.83999999997, 155389.44999999995, 153880.67999999996, 156817.28999999995, 158993.51999999996, 161169.74999999997, 157822.72999999998, 163106.77, 166384.59999999998, 169701.96999999997, 173568.31999999998, 172315.11999999997, 171085.97999999995, 170450.35999999996, 169829.59999999995, 170123.87999999995, 175343.69999999995, 173102.50999999995, 172933.07999999996, 172699.92999999996, 174784.21999999997, 174784.11999999997, 175085.23999999996, 173955.50999999995, 175197.34999999995, 173670.22999999995, 174615.58999999994, 171213.28999999995, 169407.25999999995, 173455.90999999995, 175417.44999999995, 180507.16999999995, 185587.46999999994, 189950.99999999994, 186613.88999999996, 189805.25999999995, 191360.11999999994, 193713.02999999994, 195209.46999999994, 196234.24999999994, 192830.45999999993, 190818.39999999994, 189923.72999999992, 186943.48999999993, 185614.56999999992, 184834.03999999992, 184096.3399999999, 185152.3699999999, 188112.65999999992, 187208.53999999992, 187682.82999999993, 189207.51999999993, 190766.66999999993, 192089.22999999992, 193360.67999999993, 193959.17999999993, 192807.60999999993, 191631.37999999992, 193118.1199999999, 192956.9599999999, 192799.2399999999, 192885.4499999999, 205651.3299999999, 203607.8199999999, 203581.14999999988, 203574.0399999999, 203653.0199999999, 203750.18999999992, 200380.7699999999, 197011.0499999999, 197932.3399999999, 197667.65999999992, 200010.65999999992, 202356.9899999999, 206215.62999999992, 204886.34999999992, 201675.90999999992, 198326.94999999992, 201523.75999999992, 198179.32999999993, 201795.30999999994, 205423.03999999995, 218208.90999999995, 215009.24999999994, 211646.52999999994, 214532.94999999995, 211947.27999999994, 209352.63999999993, 210346.70999999993, 211328.84999999995, 207978.69999999995, 207776.53999999995, 204403.13999999996, 210859.34999999995, 211391.03999999995, 221940.29999999996, 232495.82999999996, 230638.99999999997, 234584.47999999998, 238544.78999999998, 242671.77, 246795.47, 243451.53, 243129.83, 241133.49, 243016.34999999998, 242582.05, 248174.13999999998, 253633.43, 255280.18, 268023.54, 280779.55, 279736.08, 278953.9, 281903.32, 285104.86, 283572.36, 286179.1, 289255.14999999997, 288027.87999999995, 291786.7299999999, 290360.2699999999, 288941.8499999999, 287674.05999999994, 286215.7199999999, 284566.2799999999, 283161.7499999999, 280477.4599999999, 292632.2299999999, 299928.99999999994, 299521.37999999995, 303958.07999999996, 302250.17, 303056.25, 303188.39, 299825.13, 298721.49, 295970.98, 298073.58999999997, 302003.62999999995, 314820.31999999995, 327620.77999999997, 334230.13999999996, 333160.07999999996, 336035.42999999993, 338867.7899999999, 338489.4799999999, 339737.5799999999, 343503.8599999999, 340131.9699999999, 340491.3499999999, 340637.9699999999, 340626.55999999994, 341210.17999999993, 342715.9799999999, 345189.3599999999, 341790.19999999995, 342510.43999999994, 343931.99999999994, 345526.00999999995, 344474.9199999999, 344058.6699999999, 344985.24999999994, 344937.86999999994, 349393.45999999996, 348046.38999999996, 349073.04, 350535.49, 349364.83, 348417.47000000003, 349297.39, 350265.83, 350763.69, 350875.56, 350379.08, 353054.02, 354196.49, 353272.88, 352392.01, 355090.11, 352253.55, 349871.62, 349557.63, 349880.46, 350103.49000000005, 349211.96, 348486.78, 349902.35000000003, 354267.88000000006, 357402.31000000006, 356363.97000000003, 356458.61000000004, 356816.77, 357088.72000000003, 359704.13, 356340.25, 362749.28, 362659.88, 362612.89, 362038.68, 360715.66, 361561.1, 360173.75999999995, 359049.17999999993, 357959.3399999999, 361086.98999999993, 361438.8999999999, 359774.23999999993, 359482.9099999999, 364368.68999999994, 363735.88999999996, 363248.13999999996, 366930.76999999996, 366684.26999999996, 372256.89999999997, 377555.72, 390393.87999999995, 403230.7299999999, 405378.5899999999, 404427.5299999999, 403488.8299999999, 406484.1299999999],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Baseline Champion (+Rs 406.5k)',
+            line: { color: '#64748b', width: 2, dash: 'dot' }
+        };
+
+        const traceMax = {
+            x: ["2024-10-18", "2024-10-23", "2024-10-23", "2024-11-11", "2024-11-11", "2024-11-14", "2024-11-22", "2024-11-26", "2024-11-27", "2024-11-28", "2024-11-29", "2024-12-03", "2024-12-04", "2024-12-05", "2024-12-09", "2024-12-11", "2024-12-11", "2024-12-12", "2024-12-13", "2024-12-23", "2024-12-23", "2024-12-24", "2024-12-24", "2024-12-26", "2024-12-26", "2024-12-27", "2024-12-30", "2025-01-01", "2025-01-02", "2025-01-06", "2025-01-10", "2025-01-14", "2025-01-15", "2025-01-16", "2025-01-20", "2025-01-22", "2025-01-23", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-01-31", "2025-02-01", "2025-02-04", "2025-02-13", "2025-02-13", "2025-02-20", "2025-03-04", "2025-03-06", "2025-03-06", "2025-03-07", "2025-03-10", "2025-03-10", "2025-03-12", "2025-03-13", "2025-03-17", "2025-03-18", "2025-03-19", "2025-03-21", "2025-03-25", "2025-03-28", "2025-04-02", "2025-04-03", "2025-04-03", "2025-04-08", "2025-04-16", "2025-04-21", "2025-04-22", "2025-04-23", "2025-04-23", "2025-04-25", "2025-04-28", "2025-04-30", "2025-05-02", "2025-05-05", "2025-05-07", "2025-05-07", "2025-05-14", "2025-05-26", "2025-05-29", "2025-06-03", "2025-06-05", "2025-06-09", "2025-06-10", "2025-06-10", "2025-06-11", "2025-06-11", "2025-06-16", "2025-06-18", "2025-06-24", "2025-06-25", "2025-06-26", "2025-06-27", "2025-06-30", "2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-08", "2025-07-09", "2025-07-15", "2025-07-16", "2025-07-18", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-25", "2025-07-28", "2025-07-29", "2025-08-04", "2025-08-11", "2025-08-13", "2025-08-13", "2025-08-14", "2025-08-14", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-21", "2025-08-25", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-09", "2025-09-09", "2025-09-11", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-17", "2025-09-18", "2025-09-22", "2025-09-30", "2025-09-30", "2025-10-01", "2025-10-06", "2025-10-07", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-14", "2025-10-16", "2025-10-20", "2025-10-28", "2025-10-29", "2025-11-03", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-01", "2025-12-04", "2025-12-05", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-18", "2025-12-18", "2025-12-23", "2025-12-24", "2025-12-24", "2026-01-01", "2026-01-01", "2026-01-06", "2026-01-16", "2026-01-22", "2026-01-28", "2026-01-28", "2026-02-01", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-11", "2026-02-16", "2026-02-17", "2026-02-20", "2026-02-23", "2026-02-23", "2026-02-25", "2026-02-26", "2026-03-05", "2026-03-10", "2026-03-12", "2026-03-18", "2026-03-20", "2026-03-20", "2026-03-30", "2026-04-06", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-20", "2026-04-21", "2026-04-27", "2026-04-27", "2026-04-28", "2026-05-04", "2026-05-06", "2026-05-06", "2026-05-14", "2026-05-15", "2026-05-15", "2026-05-19", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-26", "2026-05-27", "2026-05-29", "2026-05-29", "2026-06-02", "2026-06-03", "2026-06-05", "2026-06-05", "2026-06-09", "2026-06-11", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-23", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-29", "2026-06-30", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-07", "2026-07-07", "2026-07-08", "2026-07-08", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-14", "2026-07-16", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-22", "2026-07-23", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-18", "2026-08-18", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-31", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-09", "2026-09-09", "2026-09-10", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-09-30", "2026-10-01", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-07"],
+            y: [-588.14, 4990.839999999999, 10540.96, 15798.82, 21084.6, 27748.66, 34647.58, 40394.520000000004, 39792.25000000001, 52635.100000000006, 51403.310000000005, 50812.090000000004, 53676.130000000005, 51095.08, 52320.17, 53184.509999999995, 54032.81999999999, 59563.05999999999, 56166.91999999999, 61401.81999999999, 68197.73999999999, 71225.26999999999, 74196.79, 74313.64, 74396.75, 78492.98, 88082.81999999999, 89096.12, 86735.62999999999, 99516.21999999999, 96088.95999999999, 95874.09, 96473.19, 96095.71, 92729.06000000001, 97540.35, 99220.45000000001, 104826.78000000001, 110134.45000000001, 109278.52000000002, 109425.32000000002, 106025.36000000002, 112111.57000000002, 108753.40000000002, 116289.96000000002, 120784.05000000002, 119226.40000000002, 117928.82000000002, 122328.38000000002, 120074.73000000003, 120361.78000000003, 128378.74000000003, 134207.94000000003, 138350.19000000003, 143368.42000000004, 143336.36000000004, 139992.22000000003, 138691.85000000003, 136659.58000000005, 138442.70000000004, 143509.24000000005, 141333.37000000005, 142199.00000000006, 143075.41000000006, 139717.86000000007, 138658.74000000008, 139441.26000000007, 136078.02000000008, 141341.73000000007, 138227.07000000007, 150967.01000000007, 151815.98000000007, 151178.34000000005, 153851.02000000005, 156149.92000000004, 157575.06000000006, 159014.89000000004, 163604.28000000006, 162814.38000000006, 167448.18000000005, 176026.47000000006, 172710.09000000005, 173052.33000000005, 173980.17000000004, 172669.82000000004, 173032.55000000005, 173473.49000000005, 170095.39000000004, 169300.87000000005, 168906.44000000006, 167243.86000000007, 164484.35000000006, 164439.73000000007, 170605.93000000008, 171974.11000000007, 179859.24000000008, 184893.73000000007, 184344.80000000008, 182411.0000000001, 186851.3800000001, 184415.49000000008, 185251.39000000007, 192201.69000000006, 191642.19000000006, 188650.54000000007, 185307.04000000007, 189379.07000000007, 198058.40000000005, 195416.56000000006, 193503.02000000005, 190138.98000000004, 192452.10000000003, 194742.04000000004, 196483.67000000004, 198189.61000000004, 195954.22000000003, 194977.43000000002, 195193.63000000003, 197173.94000000003, 198111.88000000003, 203008.11000000004, 199640.37000000005, 203977.32000000007, 209919.85000000006, 206983.41000000006, 210824.98000000007, 214663.63000000006, 219383.22000000006, 222354.09000000005, 222553.70000000004, 222707.79000000004, 222960.56000000003, 223216.58000000002, 221668.49000000002, 224074.6, 223856.46, 222138.12, 226706.9, 229870.13, 233033.36000000002, 229686.34000000003, 234624.32000000004, 238091.46000000005, 241598.14000000004, 245731.75000000003, 244003.57000000004, 243839.73000000004, 250166.13000000003, 247716.74000000002, 248963.56000000003, 254348.52000000002, 255208.47000000003, 256434.01000000004, 253986.00000000003, 255332.18000000002, 253614.67, 254979.85, 251577.55000000002, 249711.26, 255124.24000000002, 257253.58000000002, 262422.48000000004, 267581.95, 272596.53, 269259.42000000004, 275282.80000000005, 276917.67000000004, 281180.78, 284587.42000000004, 285013.48000000004, 281609.69000000006, 279282.88000000006, 276223.57000000007, 275004.70000000007, 275612.5800000001, 280129.63000000006, 278527.4600000001, 281153.9000000001, 283814.7900000001, 285405.8000000001, 286945.7000000001, 287196.8000000001, 285702.5000000001, 288352.2500000001, 293204.0500000001, 298059.2800000001, 302511.0800000001, 300244.3600000001, 299269.2600000001, 299886.9400000001, 300522.8200000001, 297153.40000000014, 297440.73000000016, 297417.24000000017, 300401.2600000002, 303388.62000000017, 308128.0100000002, 307686.86000000016, 304476.42000000016, 301127.46000000014, 305559.28000000014, 302214.85000000015, 307156.48000000016, 312109.86000000016, 321258.77000000014, 317896.05000000016, 323839.8800000002, 321171.62000000017, 326114.41000000015, 327391.09000000014, 324040.9400000001, 324285.9300000001, 320912.5300000001, 325513.0900000001, 325271.1000000001, 337635.70000000007, 350006.57000000007, 355142.18000000005, 360233.87000000005, 365340.3900000001, 370122.56000000006, 374901.45000000007, 371557.51000000007, 369996.6600000001, 372135.4900000001, 376650.5600000001, 381032.83000000013, 383253.7500000001, 388081.52000000014, 398452.39000000013, 398148.09000000014, 396316.8100000001, 401070.7300000001, 405162.1000000001, 403805.3400000001, 402993.07000000007, 401725.4000000001, 400335.9200000001, 399187.0700000001, 397004.9500000001, 401131.39000000013, 405629.34000000014, 404393.11000000016, 408532.78000000014, 409376.65000000014, 410234.98000000016, 406871.72000000015, 405448.40000000014, 402761.67000000016, 403857.0000000002, 406645.42000000016, 411862.77000000014, 418225.8100000001, 422341.8700000001, 420696.4800000001, 423243.9200000001, 425748.3700000001, 427126.5900000001, 431055.7700000001, 427683.88000000006, 427899.31000000006, 429121.04000000004, 431180.88000000006, 433698.13000000006, 438366.32000000007, 434967.1600000001, 436641.7100000001, 438488.70000000007, 437801.57000000007, 438510.04000000004, 442978.96, 442632.46, 443910.43, 445663.76, 444362.15, 448618.31, 448985.47, 450264.33999999997, 450187.42, 449235.47, 452278.83999999997, 449631.66, 449018.06999999995, 448876.49999999994, 447835.13999999996, 449573.81999999995, 454309.3599999999, 458225.56999999995, 457397.00999999995, 457782.33999999997, 458076.70999999996, 460594.45999999996, 457230.57999999996, 456940.76999999996, 456625.08999999997, 457859.44999999995, 456182.79999999993, 454715.0199999999, 458985.0199999999, 459034.7799999999, 457825.2299999999, 462050.2099999999, 461826.8799999999, 465368.60999999987, 465681.5499999999, 470763.8099999999, 475572.2599999999, 479733.3699999999, 487199.52999999985, 491329.09999999986, 490833.56999999983, 490464.2899999998],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Maximum Profit (+Rs 490.5k)',
+            line: { color: '#10b981', width: 3 }
+        };
+
+        Plotly.newPlot('equityChart', [traceBase, traceMax], {
+            ...darkLayout,
+            hovermode: 'x unified',
+            legend: { orientation: 'h', y: 1.15, x: 0.01 }
+        }, { responsive: true, displayModeBar: false });
+
+        const traceDdBase = {
+            x: ["2024-10-18", "2024-10-23", "2024-10-23", "2024-10-29", "2024-11-11", "2024-11-11", "2024-11-14", "2024-11-22", "2024-11-25", "2024-11-26", "2024-11-27", "2024-11-27", "2024-11-28", "2024-11-29", "2024-12-02", "2024-12-03", "2024-12-04", "2024-12-05", "2024-12-09", "2024-12-09", "2024-12-11", "2024-12-11", "2024-12-12", "2024-12-13", "2024-12-23", "2024-12-23", "2024-12-24", "2024-12-24", "2024-12-26", "2024-12-26", "2024-12-27", "2024-12-27", "2024-12-30", "2025-01-01", "2025-01-02", "2025-01-06", "2025-01-10", "2025-01-14", "2025-01-14", "2025-01-15", "2025-01-16", "2025-01-20", "2025-01-22", "2025-01-23", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-01-31", "2025-02-01", "2025-02-04", "2025-02-13", "2025-02-13", "2025-02-20", "2025-03-04", "2025-03-06", "2025-03-06", "2025-03-07", "2025-03-10", "2025-03-10", "2025-03-12", "2025-03-13", "2025-03-17", "2025-03-17", "2025-03-18", "2025-03-19", "2025-03-21", "2025-03-25", "2025-03-25", "2025-03-28", "2025-04-02", "2025-04-03", "2025-04-03", "2025-04-08", "2025-04-16", "2025-04-16", "2025-04-21", "2025-04-22", "2025-04-22", "2025-04-23", "2025-04-23", "2025-04-25", "2025-04-28", "2025-04-30", "2025-05-02", "2025-05-05", "2025-05-07", "2025-05-07", "2025-05-14", "2025-05-26", "2025-05-26", "2025-05-29", "2025-06-03", "2025-06-04", "2025-06-05", "2025-06-09", "2025-06-10", "2025-06-10", "2025-06-11", "2025-06-11", "2025-06-16", "2025-06-18", "2025-06-24", "2025-06-25", "2025-06-25", "2025-06-26", "2025-06-27", "2025-06-27", "2025-06-30", "2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-08", "2025-07-09", "2025-07-15", "2025-07-16", "2025-07-18", "2025-07-21", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-25", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-04", "2025-08-04", "2025-08-11", "2025-08-11", "2025-08-13", "2025-08-13", "2025-08-14", "2025-08-14", "2025-08-19", "2025-08-19", "2025-08-20", "2025-08-20", "2025-08-21", "2025-08-21", "2025-08-25", "2025-08-25", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-08", "2025-09-09", "2025-09-09", "2025-09-11", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-17", "2025-09-17", "2025-09-18", "2025-09-22", "2025-09-30", "2025-09-30", "2025-10-01", "2025-10-06", "2025-10-07", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-09", "2025-10-10", "2025-10-10", "2025-10-13", "2025-10-14", "2025-10-16", "2025-10-17", "2025-10-20", "2025-10-28", "2025-10-29", "2025-11-03", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-01", "2025-12-04", "2025-12-05", "2025-12-11", "2025-12-11", "2025-12-12", "2025-12-12", "2025-12-15", "2025-12-15", "2025-12-18", "2025-12-18", "2025-12-23", "2025-12-23", "2025-12-24", "2025-12-24", "2026-01-01", "2026-01-01", "2026-01-06", "2026-01-16", "2026-01-16", "2026-01-22", "2026-01-28", "2026-01-28", "2026-01-30", "2026-02-01", "2026-02-09", "2026-02-10", "2026-02-10", "2026-02-11", "2026-02-11", "2026-02-16", "2026-02-16", "2026-02-17", "2026-02-20", "2026-02-23", "2026-02-23", "2026-02-25", "2026-02-26", "2026-03-05", "2026-03-10", "2026-03-12", "2026-03-18", "2026-03-20", "2026-03-20", "2026-03-30", "2026-04-02", "2026-04-06", "2026-04-16", "2026-04-17", "2026-04-17", "2026-04-20", "2026-04-20", "2026-04-21", "2026-04-27", "2026-04-27", "2026-04-28", "2026-05-04", "2026-05-06", "2026-05-06", "2026-05-14", "2026-05-15", "2026-05-15", "2026-05-19", "2026-05-19", "2026-05-20", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-22", "2026-05-26", "2026-05-26", "2026-05-27", "2026-05-29", "2026-05-29", "2026-06-02", "2026-06-03", "2026-06-05", "2026-06-05", "2026-06-09", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-11", "2026-06-16", "2026-06-16", "2026-06-17", "2026-06-17", "2026-06-18", "2026-06-18", "2026-06-19", "2026-06-23", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-25", "2026-06-29", "2026-06-30", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-07", "2026-07-07", "2026-07-08", "2026-07-08", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-16", "2026-07-20", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-22", "2026-07-23", "2026-07-23", "2026-07-24", "2026-07-24", "2026-07-28", "2026-07-28", "2026-07-30", "2026-07-30", "2026-07-31", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-07", "2026-08-10", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-13", "2026-08-17", "2026-08-18", "2026-08-18", "2026-08-21", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-27", "2026-08-31", "2026-08-31", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-04", "2026-09-09", "2026-09-09", "2026-09-10", "2026-09-15", "2026-09-15", "2026-09-16", "2026-09-16", "2026-09-17", "2026-09-17", "2026-09-18", "2026-09-18", "2026-09-21", "2026-09-21", "2026-09-22", "2026-09-22", "2026-09-23", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-09-30", "2026-10-01", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-07", "2026-10-07"],
+            y: [0.0, 0.0, 0.0, -1424.7800000000007, 0.0, 0.0, 0.0, 0.0, -697.4399999999987, 0.0, -1042.6600000000035, -171.95000000000437, 0.0, 0.0, -666.9800000000032, -1771.3400000000038, -660.4400000000023, -3241.4900000000052, -2463.260000000002, -1688.260000000002, -1884.4100000000035, -2096.590000000004, 0.0, -3396.1399999999994, -1709.3600000000006, 0.0, 0.0, 0.0, 0.0, 0.0, -15.180000000000291, 0.0, 0.0, 0.0, -2360.4900000000052, 0.0, -3427.2599999999948, -2966.8600000000006, -2541.0, -2375.270000000004, -3298.4199999999983, -6665.069999999992, -7965.939999999988, -6378.899999999994, -179.30999999999767, 0.0, -1917.3800000000047, -1613.9300000000076, -5013.890000000014, -2334.99000000002, -5693.160000000018, 0.0, 0.0, -1450.4600000000064, -2930.9400000000023, 0.0, -2210.2100000000064, -459.43000000000757, 0.0, 0.0, 0.0, 0.0, -844.6499999999942, -1627.9700000000012, -4972.110000000001, -5597.350000000006, -6876.720000000001, -5361.889999999999, -7117.580000000002, -3928.2100000000064, -5882.389999999999, -5375.729999999996, -4858.279999999999, -8215.830000000002, -9877.240000000005, -11529.650000000009, -10882.920000000013, -14246.160000000018, -15516.520000000019, -10496.510000000024, -13531.900000000023, -791.960000000021, -1741.980000000025, -1152.1200000000244, -995.9700000000303, 0.0, 0.0, 0.0, 0.0, -375.5399999999936, -741.6299999999901, -1793.9899999999907, 0.0, 0.0, -3316.3800000000047, -3100.2100000000064, -2704.2400000000052, -3532.1500000000087, -2812.520000000004, -2014.6699999999983, -5392.770000000004, -5750.389999999999, -5399.100000000006, -6756.270000000004, -8113.440000000002, -10842.440000000002, -11463.779999999999, -12091.080000000002, -7209.040000000008, -6507.970000000001, -1481.9100000000035, 0.0, -445.3399999999965, -2293.0899999999965, 0.0, -2416.070000000007, -1587.4500000000116, 0.0, -470.6600000000035, -2446.3800000000047, -5132.880000000005, -8476.380000000005, -3466.8600000000006, 0.0, -2313.170000000013, -3140.220000000001, 0.0, -2538.220000000001, -3649.9100000000035, -7013.950000000012, -10378.160000000003, -7946.950000000012, -5538.920000000013, -4982.49000000002, -4461.74000000002, -6274.420000000013, -6896.290000000008, -7984.180000000022, -8143.680000000022, -8013.430000000022, -6142.210000000021, -5384.360000000015, -4606.900000000023, 0.0, -3367.7399999999907, -521.1399999999849, 0.0, -2701.4800000000105, 0.0, 0.0, 0.0, 0.0, 0.0, -1064.179999999993, -2173.8800000000047, -2332.5899999999965, -2488.0499999999884, -4437.419999999984, -2162.3799999999756, -2109.3699999999662, -2032.7599999999802, -3541.5299999999697, -604.9199999999837, 0.0, 0.0, -3347.0199999999895, 0.0, 0.0, 0.0, 0.0, -1253.2000000000116, -2482.3400000000256, -3117.960000000021, -3738.7200000000303, -3444.4400000000314, 0.0, -2241.1900000000023, -2410.6199999999953, -2643.7699999999895, -559.4799999999814, -559.5799999999872, -258.45999999999185, -1388.1900000000023, -146.35000000000582, -1673.4700000000012, -728.1100000000151, -4130.4100000000035, -5936.440000000002, -1887.7900000000081, 0.0, 0.0, 0.0, 0.0, -3337.109999999986, -145.7399999999907, 0.0, 0.0, 0.0, 0.0, -3403.790000000008, -5415.850000000006, -6310.520000000019, -9290.76000000001, -10619.680000000022, -11400.210000000021, -12137.910000000033, -11081.880000000034, -8121.590000000026, -9025.710000000021, -8551.420000000013, -7026.7300000000105, -5467.580000000016, -4145.020000000019, -2873.570000000007, -2275.070000000007, -3426.640000000014, -4602.870000000024, -3116.1300000000338, -3277.2900000000373, -3435.0100000000384, -3348.8000000000466, 0.0, -2043.5100000000093, -2070.180000000022, -2077.290000000008, -1998.3099999999977, -1901.1399999999849, -5270.559999999998, -8640.279999999999, -7718.989999999991, -7983.669999999984, -5640.669999999984, -3294.3399999999965, 0.0, -1329.2799999999988, -4539.720000000001, -7888.679999999993, -4691.869999999995, -8036.299999999988, -4420.319999999978, -792.5899999999674, 0.0, -3199.6600000000035, -6562.380000000005, -3675.959999999992, -6261.630000000005, -8856.270000000019, -7862.200000000012, -6880.059999999998, -10230.209999999992, -10432.369999999995, -13805.76999999999, -7349.559999999998, -6817.869999999995, 0.0, 0.0, -1856.8299999999872, 0.0, 0.0, 0.0, 0.0, -3343.9400000000023, -3665.640000000014, -5661.9800000000105, -3779.1200000000244, -4213.420000000013, 0.0, 0.0, 0.0, 0.0, 0.0, -1043.469999999972, -1825.649999999965, 0.0, 0.0, -1532.5, 0.0, 0.0, -1227.2700000000186, 0.0, -1426.460000000021, -2844.8800000000047, -4112.669999999984, -5571.010000000009, -7220.450000000012, -8624.98000000004, -11309.270000000019, 0.0, 0.0, -407.61999999999534, 0.0, -1707.9099999999744, -901.8299999999581, -769.6899999999441, -4132.949999999953, -5236.589999999967, -7987.099999999977, -5884.489999999991, -1954.4500000000116, 0.0, 0.0, 0.0, -1070.0599999999977, 0.0, 0.0, -378.3099999999977, 0.0, 0.0, -3371.890000000014, -3012.5100000000093, -2865.890000000014, -2877.2999999999884, -2293.679999999993, -787.8800000000047, 0.0, -3399.1599999999744, -2678.9199999999837, -1257.359999999986, 0.0, -1051.0900000000256, -1467.3400000000256, -540.7600000000093, -588.140000000014, 0.0, -1347.070000000007, -320.4199999999837, 0.0, -1170.6599999999744, -2118.0199999999604, -1238.0999999999767, -269.6599999999744, 0.0, 0.0, -496.4799999999814, 0.0, 0.0, -923.609999999986, -1804.4799999999814, 0.0, -2836.5599999999977, -5218.489999999991, -5532.479999999981, -5209.649999999965, -4986.619999999937, -5878.149999999965, -6603.329999999958, -5187.759999999951, -822.2299999999232, 0.0, -1038.3400000000256, -943.7000000000116, -585.5400000000373, -313.5900000000256, 0.0, -3363.8800000000047, 0.0, -89.40000000002328, -136.39000000001397, -710.6000000000349, -2033.6200000000536, -1188.1800000000512, -2575.520000000077, -3700.100000000093, -4789.940000000119, -1662.2900000000955, -1310.380000000121, -2975.0400000000955, -3266.3700000001118, 0.0, -632.7999999999884, -1120.5499999999884, 0.0, -246.5, 0.0, 0.0, 0.0, 0.0, 0.0, -951.0599999999977, -1889.7600000000093, 0.0],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Baseline DD (Max Rs -15.5k)',
+            line: { color: '#ef4444', width: 1, dash: 'dot' }
+        };
+
+        const traceDdMax = {
+            x: ["2024-10-18", "2024-10-23", "2024-10-23", "2024-11-11", "2024-11-11", "2024-11-14", "2024-11-22", "2024-11-26", "2024-11-27", "2024-11-28", "2024-11-29", "2024-12-03", "2024-12-04", "2024-12-05", "2024-12-09", "2024-12-11", "2024-12-11", "2024-12-12", "2024-12-13", "2024-12-23", "2024-12-23", "2024-12-24", "2024-12-24", "2024-12-26", "2024-12-26", "2024-12-27", "2024-12-30", "2025-01-01", "2025-01-02", "2025-01-06", "2025-01-10", "2025-01-14", "2025-01-15", "2025-01-16", "2025-01-20", "2025-01-22", "2025-01-23", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-01-31", "2025-02-01", "2025-02-04", "2025-02-13", "2025-02-13", "2025-02-20", "2025-03-04", "2025-03-06", "2025-03-06", "2025-03-07", "2025-03-10", "2025-03-10", "2025-03-12", "2025-03-13", "2025-03-17", "2025-03-18", "2025-03-19", "2025-03-21", "2025-03-25", "2025-03-28", "2025-04-02", "2025-04-03", "2025-04-03", "2025-04-08", "2025-04-16", "2025-04-21", "2025-04-22", "2025-04-23", "2025-04-23", "2025-04-25", "2025-04-28", "2025-04-30", "2025-05-02", "2025-05-05", "2025-05-07", "2025-05-07", "2025-05-14", "2025-05-26", "2025-05-29", "2025-06-03", "2025-06-05", "2025-06-09", "2025-06-10", "2025-06-10", "2025-06-11", "2025-06-11", "2025-06-16", "2025-06-18", "2025-06-24", "2025-06-25", "2025-06-26", "2025-06-27", "2025-06-30", "2025-07-01", "2025-07-02", "2025-07-03", "2025-07-04", "2025-07-08", "2025-07-09", "2025-07-15", "2025-07-16", "2025-07-18", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-25", "2025-07-28", "2025-07-29", "2025-08-04", "2025-08-11", "2025-08-13", "2025-08-13", "2025-08-14", "2025-08-14", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-21", "2025-08-25", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-09", "2025-09-09", "2025-09-11", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-17", "2025-09-18", "2025-09-22", "2025-09-30", "2025-09-30", "2025-10-01", "2025-10-06", "2025-10-07", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-14", "2025-10-16", "2025-10-20", "2025-10-28", "2025-10-29", "2025-11-03", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-01", "2025-12-04", "2025-12-05", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-18", "2025-12-18", "2025-12-23", "2025-12-24", "2025-12-24", "2026-01-01", "2026-01-01", "2026-01-06", "2026-01-16", "2026-01-22", "2026-01-28", "2026-01-28", "2026-02-01", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-11", "2026-02-16", "2026-02-17", "2026-02-20", "2026-02-23", "2026-02-23", "2026-02-25", "2026-02-26", "2026-03-05", "2026-03-10", "2026-03-12", "2026-03-18", "2026-03-20", "2026-03-20", "2026-03-30", "2026-04-06", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-20", "2026-04-21", "2026-04-27", "2026-04-27", "2026-04-28", "2026-05-04", "2026-05-06", "2026-05-06", "2026-05-14", "2026-05-15", "2026-05-15", "2026-05-19", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-26", "2026-05-27", "2026-05-29", "2026-05-29", "2026-06-02", "2026-06-03", "2026-06-05", "2026-06-05", "2026-06-09", "2026-06-11", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-23", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-29", "2026-06-30", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-07", "2026-07-07", "2026-07-08", "2026-07-08", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-14", "2026-07-16", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-22", "2026-07-23", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-18", "2026-08-18", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-31", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-09", "2026-09-09", "2026-09-10", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-09-30", "2026-10-01", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-07"],
+            y: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -602.2699999999968, 0.0, -1231.7900000000009, -1823.010000000002, 0.0, -2581.050000000003, -1355.9600000000064, -491.6200000000099, 0.0, 0.0, -3396.1399999999994, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2360.4900000000052, 0.0, -3427.2599999999948, -3642.12999999999, -3043.0299999999843, -3420.50999999998, -6787.159999999974, -1975.8699999999808, -295.76999999997497, 0.0, 0.0, -855.929999999993, -709.1299999999901, -4109.0899999999965, 0.0, -3358.1699999999983, 0.0, 0.0, -1557.6499999999942, -2855.229999999996, 0.0, -2253.649999999994, -1966.5999999999913, 0.0, 0.0, 0.0, 0.0, -32.05999999999767, -3376.2000000000116, -4676.570000000007, -6708.8399999999965, -4925.720000000001, 0.0, -2175.8699999999953, -1310.2399999999907, -433.8299999999872, -3791.3799999999756, -4850.499999999971, -4067.9799999999814, -7431.219999999972, -2167.50999999998, -5282.169999999984, 0.0, 0.0, -637.640000000014, 0.0, 0.0, 0.0, 0.0, 0.0, -789.8999999999942, 0.0, 0.0, -3316.3800000000047, -2974.140000000014, -2046.3000000000175, -3356.6500000000233, -2993.920000000013, -2552.9800000000105, -5931.080000000016, -6725.600000000006, -7120.029999999999, -8782.609999999986, -11542.119999999995, -11586.73999999999, -5420.539999999979, -4052.359999999986, 0.0, 0.0, -548.929999999993, -2482.7299999999814, 0.0, -2435.890000000014, -1599.9900000000198, 0.0, -559.5, -3551.149999999994, -6894.649999999994, -2822.6199999999953, 0.0, -2641.8399999999965, -4555.380000000005, -7919.420000000013, -5606.3000000000175, -3316.360000000015, -1574.7300000000105, 0.0, -2235.390000000014, -3212.180000000022, -2995.9800000000105, -1015.6700000000128, -77.73000000001048, 0.0, -3367.7399999999907, 0.0, 0.0, -2936.4400000000023, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1548.0899999999965, 0.0, -218.14000000001397, -1936.4800000000105, 0.0, 0.0, 0.0, -3347.0199999999895, 0.0, 0.0, 0.0, 0.0, -1728.179999999993, -1892.0199999999895, 0.0, -2449.390000000014, -1202.570000000007, 0.0, 0.0, 0.0, -2448.0100000000093, -1101.8300000000163, -2819.3400000000256, -1454.1600000000326, -4856.460000000021, -6722.750000000029, -1309.7700000000186, 0.0, 0.0, 0.0, 0.0, -3337.109999999986, 0.0, 0.0, 0.0, 0.0, 0.0, -3403.789999999979, -5730.599999999977, -8789.909999999974, -10008.77999999997, -9400.899999999965, -4883.849999999977, -6486.01999999996, -3859.579999999958, -1198.6899999999441, 0.0, 0.0, 0.0, -1494.2999999999884, 0.0, 0.0, 0.0, 0.0, -2266.719999999972, -3241.819999999949, -2624.1399999999558, -1988.259999999951, -5357.679999999935, -5070.3499999999185, -5093.839999999909, -2109.8199999998906, 0.0, 0.0, -441.1500000000233, -3651.5900000000256, -7000.550000000047, -2568.7300000000396, -5913.160000000033, -971.5300000000279, 0.0, 0.0, -3362.719999999972, 0.0, -2668.2600000000093, 0.0, 0.0, -3350.1500000000233, -3105.1600000000326, -6478.560000000056, -1878.0000000000582, -2119.990000000049, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -3343.9400000000023, -4904.789999999979, -2765.9599999999627, 0.0, 0.0, 0.0, 0.0, 0.0, -304.29999999998836, -2135.5800000000163, 0.0, 0.0, -1356.7600000000093, -2169.030000000028, -3436.7000000000116, -4826.179999999993, -5975.02999999997, -8157.149999999965, -4030.7099999999627, 0.0, -1236.2299999999814, 0.0, 0.0, 0.0, -3363.2600000000093, -4786.580000000016, -7473.309999999998, -6377.979999999981, -3589.5599999999977, 0.0, 0.0, 0.0, -1645.390000000014, 0.0, 0.0, 0.0, 0.0, -3371.890000000014, -3156.460000000021, -1934.7300000000396, 0.0, 0.0, 0.0, -3399.1599999999744, -1724.609999999986, 0.0, -687.1300000000047, 0.0, 0.0, -346.5, 0.0, 0.0, -1301.609999999986, 0.0, 0.0, 0.0, -76.9199999999837, -1028.8699999999953, 0.0, -2647.179999999993, -3260.7700000000186, -3402.3400000000256, -4443.700000000012, -2705.0200000000186, 0.0, 0.0, -828.5599999999977, -443.2299999999814, -148.85999999998603, 0.0, -3363.8800000000047, -3653.6900000000023, -3969.3699999999953, -2735.0100000000093, -4411.660000000033, -5879.4400000000605, -1609.4400000000605, -1559.6800000000512, -2769.2300000000396, 0.0, -223.3300000000163, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -495.53000000002794, -864.8100000000559],
+            type: 'scatter',
+            mode: 'lines',
+            fill: 'tozeroy',
+            fillcolor: 'rgba(16, 185, 129, 0.15)',
+            name: 'Max Profit DD (Max Rs -11.6k)',
+            line: { color: '#10b981', width: 2 }
+        };
+
+        Plotly.newPlot('ddChart', [traceDdBase, traceDdMax], {
+            ...darkLayout,
+            hovermode: 'x unified',
+            legend: { orientation: 'h', y: 1.2, x: 0.01 }
+        }, { responsive: true, displayModeBar: false });
+
+        const tracePb = {
+            x: ["R1 Resistance Reversal", "R2 Exhaustion Reversal", "Gap-Up R1 Polarity Bounce", "Gap-Down S1 Polarity Rejection", "S1 Support Breakdown", "Gap-and-Go Bearish ORB"],
+            y: [244323.35, 110706.83, 62231.63, 26282.82, 25085.15, 21834.51],
+            type: 'bar',
+            marker: {
+                color: [244323.35, 110706.83, 62231.63, 26282.82, 25085.15, 21834.51].map(v => v > 0 ? '#10b981' : '#ef4444'),
+                opacity: 0.85
+            },
+            text: [67.4, 56.3, 63.3, 66.7, 57.7, 62.5].map((w, i) => `Rs ${pb_pnl[i].toLocaleString()} (WR ${w}%)`),
+            textposition: 'auto'
+        };
+
+        Plotly.newPlot('playbookChart', [tracePb], {
+            ...darkLayout,
+            margin: { t: 20, r: 20, b: 80, l: 60 },
+            xaxis: { tickangle: -25, gridcolor: 'rgba(255,255,255,0.05)' }
+        }, { responsive: true, displayModeBar: false });
+
+        const traceDay = {
+            x: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            y: [113727.76, 80133.94, 98424.36, 123646.63, 63993.59],
+            type: 'bar',
+            marker: { color: '#38bdf8', opacity: 0.85 },
+            text: [64.4, 62.3, 61.2, 70.6, 51.1].map((w, i) => `Rs ${day_pnl[i].toLocaleString()} (WR ${w}%)`),
+            textposition: 'auto'
+        };
+
+        Plotly.newPlot('dayChart', [traceDay], {
+            ...darkLayout,
+            margin: { t: 20, r: 20, b: 40, l: 60 }
+        }, { responsive: true, displayModeBar: false });
+
+        const traceMonth = {
+            x: ["2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"],
+            y: [10540.96, 40862.35, 36679.51, 17942.54, 13201.04, 24282.84, 7669.1, 16269.84, 3157.75, 24810.63, 7591.55, 30025.25, 22175.11, 21709.2, 6897.12, 14244.49, 9627.58, 13571.91, 4254.32, 72939.3, 8419.33, 31638.32, 9325.1, 27737.12, 14892.03],
+            type: 'bar',
+            marker: {
+                color: [10540.96, 40862.35, 36679.51, 17942.54, 13201.04, 24282.84, 7669.1, 16269.84, 3157.75, 24810.63, 7591.55, 30025.25, 22175.11, 21709.2, 6897.12, 14244.49, 9627.58, 13571.91, 4254.32, 72939.3, 8419.33, 31638.32, 9325.1, 27737.12, 14892.03].map(v => v >= 0 ? '#10b981' : '#ef4444'),
+                opacity: 0.85
+            }
+        };
+
+        Plotly.newPlot('monthlyChart', [traceMonth], {
+            ...darkLayout,
+            margin: { t: 20, r: 20, b: 60, l: 60 },
+            xaxis: { tickangle: -45, gridcolor: 'rgba(255,255,255,0.05)' }
+        }, { responsive: true, displayModeBar: false });
+    </script>
+</body>
+</html>

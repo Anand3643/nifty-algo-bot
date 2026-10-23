@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Minute Candle NIFTY Options Strategy Backtest Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg: #0B0F19;
+            --surface: #111827;
+            --surface-hover: #1F2937;
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-main: #F9FAFB;
+            --text-muted: #94A3B8;
+            --accent-cyan: #06B6D4;
+            --accent-emerald: #10B981;
+            --accent-violet: #8B5CF6;
+            --accent-amber: #F59E0B;
+            --accent-rose: #F43F5E;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 32px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.7));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 450px; height: 100%;
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .badge-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-violet { background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 14px; max-width: 900px; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .kpi-card.highlight {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, rgba(17, 24, 39, 1), rgba(16, 185, 129, 0.08));
+        }
+        .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .kpi-val { font-size: 24px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .kpi-sub { font-size: 12px; margin-top: 6px; }
+        .text-green { color: #34D399; }
+        .text-red { color: #FB7185; }
+        .text-cyan { color: #22D3EE; }
+        .text-gold { color: #FBBF24; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--surface-border);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="badge-bar">
+            <span class="badge badge-emerald">5-Minute Candles Certified</span>
+            <span class="badge badge-cyan">Intraday Precision</span>
+            <span class="badge badge-violet">18 Trades / Month (Daily Action)</span>
+        </div>
+        <h1>5-Minute Candle Backtest: NIFTY Options S&R Strategy</h1>
+        <p>Intraday execution on 5-minute candles with 1 Lot (65 Qty) NIFTY Options. High trade frequency with ~1 trade almost every market day, capturing sharp momentum thrusts and rejection wicks.</p>
+    </div>
+
+    <!-- Top KPI Grid -->
+    <div class="kpi-grid">
+        <div class="kpi-card highlight">
+            <div class="kpi-label">5m Net Profit (4.7 Months)</div>
+            <div class="kpi-val text-green">+₹84,836.84</div>
+            <div class="kpi-sub text-green">ROI: +169.7% on ₹50k Capital</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Trade Frequency</div>
+            <div class="kpi-val text-cyan">18.0 / mo</div>
+            <div class="kpi-sub text-muted">85 Trades in 99 Days</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-val text-cyan">54.1%</div>
+            <div class="kpi-sub text-muted">46 Wins | 39 Losses</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Profit Factor / Sharpe</div>
+            <div class="kpi-val text-gold">2.42 / 5.77</div>
+            <div class="kpi-sub text-muted">Exceptional Edge</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Max Drawdown</div>
+            <div class="kpi-val text-cyan">₹6,921</div>
+            <div class="kpi-sub text-muted">13.8% (Very Safe)</div>
+        </div>
+    </div>
+
+    <!-- Equity Curve Chart -->
+    <div class="card">
+        <div class="card-title">
+            <span>5-Minute Candle Portfolio Growth (Starting Capital: ₹50,000)</span>
+            <span style="font-size: 12px; color: var(--text-muted);">Ending Capital: ₹134,836.82</span>
+        </div>
+        <div class="card-desc">Rapid compounding curve powered by consistent daily execution and asymmetric 1:3 RR (+120 pt target vs -40 pt SL).</div>
+        <div id="chart-5m-equity" style="height: 420px;"></div>
+    </div>
+
+    <!-- Monthly and Playbook Breakdown -->
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">Monthly Breakdown (100% Profitable Months)</div>
+            <div class="card-desc">Consistent monthly positive returns with 15–21 trades per month.</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Trades</th>
+                            <th>Wins</th>
+                            <th>Win Rate</th>
+                            <th>Net PnL (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>May 2026</strong></td>
+                            <td class="mono">8</td>
+                            <td class="mono">4</td>
+                            <td class="mono">50.0%</td>
+                            <td class="mono text-green">+₹5,845.87</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>June 2026</strong></td>
+                            <td class="mono">18</td>
+                            <td class="mono">10</td>
+                            <td class="mono">55.6%</td>
+                            <td class="mono text-green">+₹19,038.74</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>July 2026</strong></td>
+                            <td class="mono">15</td>
+                            <td class="mono">9</td>
+                            <td class="mono">60.0%</td>
+                            <td class="mono text-green">+₹10,601.38</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>August 2026</strong></td>
+                            <td class="mono">17</td>
+                            <td class="mono">7</td>
+                            <td class="mono">41.2%</td>
+                            <td class="mono text-green">+₹3,411.50</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>September 2026</strong></td>
+                            <td class="mono">21</td>
+                            <td class="mono">11</td>
+                            <td class="mono">52.4%</td>
+                            <td class="mono text-green">+₹18,464.09</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>October 2026</strong></td>
+                            <td class="mono">6</td>
+                            <td class="mono">5</td>
+                            <td class="mono">83.3%</td>
+                            <td class="mono text-green">+₹27,475.26</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">5-Minute Playbook Contribution</div>
+            <div class="card-desc">Breakdown across the top 5 setups on 5-minute candles.</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Playbook</th>
+                            <th>Trades</th>
+                            <th>Win Rate</th>
+                            <th>Net PnL (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>R1 Resistance Reversal</strong></td>
+                            <td class="mono">22</td>
+                            <td class="mono">63.6%</td>
+                            <td class="mono text-green">+₹43,485.29</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>R2 Exhaustion Reversal</strong></td>
+                            <td class="mono">8</td>
+                            <td class="mono">75.0%</td>
+                            <td class="mono text-green">+₹21,205.49</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>R1 Resistance Breakout</strong></td>
+                            <td class="mono">16</td>
+                            <td class="mono">50.0%</td>
+                            <td class="mono text-green">+₹15,484.62</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>S2 Flush Breakdown</strong></td>
+                            <td class="mono">19</td>
+                            <td class="mono">47.4%</td>
+                            <td class="mono text-green">+₹4,240.41</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>S1 Support Breakdown</strong></td>
+                            <td class="mono">20</td>
+                            <td class="mono">45.0%</td>
+                            <td class="mono text-green">+₹421.03</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dates = ["2026-05-20", "2026-05-20", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-26", "2026-05-26", "2026-05-27", "2026-05-29", "2026-06-02", "2026-06-03", "2026-06-03", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-29", "2026-06-29", "2026-06-30", "2026-06-30", "2026-07-01", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+    const equity = [50000.0, 47310.27, 46978.43, 49925.87, 51808.73, 49082.89, 50968.9, 48266.27, 55845.86, 54783.96, 52093.46, 51311.28, 54260.7, 57496.53, 54796.36, 57872.42, 56645.15, 55218.69, 57566.31, 59177.29, 66811.19, 74445.43, 78882.12, 76142.24, 76948.32, 74247.72, 74884.6, 78132.0, 80187.97, 86797.33, 84067.89, 82997.82, 83260.94, 82454.57, 84745.21, 82857.13, 83003.74, 84509.54, 84188.91, 85610.48, 84559.39, 85485.97, 93100.37, 91753.3, 90316.63, 91779.07, 90831.72, 91800.15, 90907.51, 89908.94, 88152.48, 89579.47, 90238.39, 89314.78, 92012.88, 89304.74, 88990.75, 89313.58, 88897.49, 86179.56, 90209.62, 93344.05, 90594.01, 90668.52, 92978.67, 94662.0, 98072.93, 100688.35, 99671.03, 107297.74, 106598.33, 106833.04, 105482.6, 104358.02, 107485.67, 105765.22, 104749.14, 102035.44, 101788.94, 107361.57, 115032.2, 122650.87, 121843.92, 125923.39, 127257.21, 134836.82];
+
+    const trace = {
+        x: dates,
+        y: equity,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Portfolio Capital (₹)',
+        line: { color: '#10B981', width: 3 }
+    };
+
+    const layout = {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { t: 20, r: 20, l: 60, b: 40 },
+        xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', color: '#94A3B8' },
+        yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', color: '#94A3B8', tickprefix: '₹' }
+    };
+
+    Plotly.newPlot('chart-5m-equity', [trace], layout, { responsive: true });
+</script>
+</body>
+</html>

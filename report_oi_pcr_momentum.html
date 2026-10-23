@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Options Directional Backtest | Quant Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #0B0F19;
+            --bg-card: #111827;
+            --bg-card-hover: #1F2937;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(99, 102, 241, 0.3);
+            --text-primary: #F9FAFB;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --accent-primary: #6366F1;
+            --accent-cyan: #06B6D4;
+            --success: #10B981;
+            --success-glow: rgba(16, 185, 129, 0.15);
+            --danger: #EF4444;
+            --danger-glow: rgba(239, 68, 68, 0.15);
+            --warning: #F59E0B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            padding: 24px 32px 64px 32px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* Header Bar */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-title-box h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #FFFFFF, #93C5FD, #818CF8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-nifty {
+            background: rgba(99, 102, 241, 0.2);
+            color: #A5B4FC;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-highlight);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .kpi-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Main Content Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Trade Log Table */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            width: 260px;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-filter {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-filter.active, .btn-filter:hover {
+            background: var(--accent-primary);
+            color: #FFFFFF;
+            border-color: var(--accent-primary);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            max-height: 480px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        thead {
+            background: #1F2937;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 12px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge-ce {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .badge-pe {
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .status-target {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .status-sl {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .status-trail {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .status-eod {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        /* Breakdown Stats List */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title-box">
+                <h1>NIFTY Options Directional Buying Backtest</h1>
+                <div class="header-subtitle">
+                    <span class="badge badge-live">Verified Quant Engine</span>
+                    <span class="badge badge-nifty">NIFTY 50 (ATM CE / PE)</span>
+                    <span>15m ORB + Supertrend & EMA Momentum Filter</span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 12px; color: var(--text-muted);">INITIAL CAPITAL</div>
+                <div style="font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono';">₹150,000.00</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Lots: 2 (50 Qty)</div>
+            </div>
+        </header>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+                <div class="kpi-title">Net Realized P&L</div>
+                <div class="kpi-value" style="color: #ef4444;">₹-11,418.73</div>
+                <div class="kpi-subtext">ROI: -7.61%</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Win Rate</div>
+                <div class="kpi-value" style="color: #60A5FA;">23.3%</div>
+                <div class="kpi-subtext">14 Wins / 46 Losses</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Profit Factor</div>
+                <div class="kpi-value" style="color: #FBBF24;">0.79</div>
+                <div class="kpi-subtext">Gross Win / Gross Loss</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Sharpe Ratio</div>
+                <div class="kpi-value" style="color: #A78BFA;">-2.06</div>
+                <div class="kpi-subtext">Sortino: -6.79</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Max Drawdown</div>
+                <div class="kpi-value" style="color: #F87171;">-14.14%</div>
+                <div class="kpi-subtext">-₹21,169.24 Peak-to-Trough</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Avg Trade P&L</div>
+                <div class="kpi-value" style="color: #ef4444;">₹-190.31</div>
+                <div class="kpi-subtext">Avg Win: ₹2,076 | Avg Loss: ₹-880</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-title">Total Charges & STT</div>
+                <div class="kpi-value" style="color: #9CA3AF;">₹3,326.37</div>
+                <div class="kpi-subtext">₹40 Brokerage + 0.0625% STT</div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📈 Cumulative Equity Curve (with Peak High-Water Mark)</div>
+                </div>
+                <div id="equityChart" style="height: 380px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎯 Strategy & Signal Analytics</div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Trades</span>
+                    <span class="stat-value">60</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Call (CE) Trades</span>
+                    <span class="stat-value">23 (Win: 26.09% | PnL: ₹-1,442)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Put (PE) Trades</span>
+                    <span class="stat-value">37 (Win: 21.62% | PnL: ₹-9,977)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Realized Risk / Reward</span>
+                    <span class="stat-value">1 : 2.36</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Avg Holding Time</span>
+                    <span class="stat-value">110.6 Mins</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Max Consec. Wins / Losses</span>
+                    <span class="stat-value">2 / 14</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Opening Range (ORB)</span>
+                    <span class="stat-value">15 Minutes</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Stop Loss / Target</span>
+                    <span class="stat-value">20% SL / 60% Target</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Trailing SL</span>
+                    <span class="stat-value">Disabled</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">OI & PCR Filter</span>
+                    <span class="stat-value" style="color: #67E8F9;">Active (Bullish > 1.05 | Bearish < 0.95)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">OI Buildup Quadrant</span>
+                    <span class="stat-value" style="color: #C4B5FD;">Active (Buildup & Covering)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🌊 Underwater Drawdown (%)</div>
+                </div>
+                <div id="drawdownChart" style="height: 260px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📊 Daily Net P&L Distribution</div>
+                </div>
+                <div id="dailyPnlChart" style="height: 260px;"></div>
+            </div>
+        </div>
+
+        <!-- Trade Log Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📜 Verified Trade Execution Book (60 Trades)</div>
+            </div>
+            
+            <div class="table-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search strike, CE/PE, reason...">
+                <div class="filter-buttons">
+                    <button class="btn-filter active" onclick="filterTrades('ALL')">All</button>
+                    <button class="btn-filter" onclick="filterTrades('CE')">Calls (CE)</button>
+                    <button class="btn-filter" onclick="filterTrades('PE')">Puts (PE)</button>
+                    <button class="btn-filter" onclick="filterTrades('WIN')">Winning</button>
+                    <button class="btn-filter" onclick="filterTrades('LOSS')">Losing</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="tradeTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Instrument</th>
+                            <th>Spot Entry</th>
+                            <th>Fill Premium</th>
+                            <th>Exit Premium</th>
+                            <th>Net P&L (₹)</th>
+                            <th>Return %</th>
+                            <th>Exit Reason</th>
+                            <th>PCR</th>
+                            <th>OI Quadrant</th>
+                            <th>Delta</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradeTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tradesData = [{"trade_id": 1, "entry_time": "2026-07-16 09:30", "exit_time": "2026-07-16 09:40", "instrument": "NIFTY 24100 PE", "option_type": "PE", "strike": 24100, "spot_entry": 24110.45, "spot_exit": 24140.85, "entry_premium": 26.97, "fill_price": 27.1, "exit_premium": 21.58, "exit_price": 21.47, "quantity": 50, "gross_pnl": -281.83, "brokerage": 40.0, "stt": 0.67, "exchange_charges": 1.29, "gst": 7.43, "total_charges": 49.46, "net_pnl": -331.29, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 10, "entry_delta": -0.4429, "entry_theta": -62.3, "entry_iv": 12.88, "entry_pcr": 0.98, "oi_quadrant": "Short Buildup", "cum_pnl": -331.29, "equity": 149668.71, "peak": 149668.71, "drawdown": 0.0, "drawdown_pct": 0.0, "date": "2026-07-16"}, {"trade_id": 2, "entry_time": "2026-07-17 09:30", "exit_time": "2026-07-17 10:15", "instrument": "NIFTY 24200 PE", "option_type": "PE", "strike": 24200, "spot_entry": 24205.9, "spot_exit": 24274.25, "entry_premium": 150.11, "fill_price": 150.86, "exit_premium": 120.09, "exit_price": 119.49, "quantity": 50, "gross_pnl": -1568.67, "brokerage": 40.0, "stt": 3.73, "exchange_charges": 7.16, "gst": 8.49, "total_charges": 59.79, "net_pnl": -1628.46, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 45, "entry_delta": -0.4652, "entry_theta": -11.22, "entry_iv": 13.15, "entry_pcr": 0.98, "oi_quadrant": "Short Buildup", "cum_pnl": -1959.75, "equity": 148040.25, "peak": 149668.71, "drawdown": -1628.4599999999919, "drawdown_pct": -1.0880430518843864, "date": "2026-07-17"}, {"trade_id": 3, "entry_time": "2026-07-20 09:30", "exit_time": "2026-07-20 10:15", "instrument": "NIFTY 24200 PE", "option_type": "PE", "strike": 24200, "spot_entry": 24180.45, "spot_exit": 24228.1, "entry_premium": 120.93, "fill_price": 121.53, "exit_premium": 96.74, "exit_price": 96.26, "quantity": 50, "gross_pnl": -1263.67, "brokerage": 40.0, "stt": 3.01, "exchange_charges": 5.77, "gst": 8.24, "total_charges": 57.34, "net_pnl": -1321.01, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 45, "entry_delta": -0.505, "entry_theta": -15.99, "entry_iv": 12.98, "entry_pcr": 0.98, "oi_quadrant": "Short Buildup", "cum_pnl": -3280.76, "equity": 146719.24, "peak": 149668.71, "drawdown": -2949.470000000001, "drawdown_pct": -1.9706657456992855, "date": "2026-07-20"}, {"trade_id": 4, "entry_time": "2026-07-21 09:30", "exit_time": "2026-07-21 15:15", "instrument": "NIFTY 24250 PE", "option_type": "PE", "strike": 24250, "spot_entry": 24226.55, "spot_exit": 24185.8, "entry_premium": 102.63, "fill_price": 103.15, "exit_premium": 120.77, "exit_price": 120.17, "quantity": 50, "gross_pnl": 850.91, "brokerage": 40.0, "stt": 3.76, "exchange_charges": 5.92, "gst": 8.27, "total_charges": 58.27, "net_pnl": 792.64, "return_pct": 16.5, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": -0.5209, "entry_theta": -18.96, "entry_iv": 12.6, "entry_pcr": 0.99, "oi_quadrant": "Short Buildup", "cum_pnl": -2488.1200000000003, "equity": 147511.88, "peak": 149668.71, "drawdown": -2156.829999999987, "drawdown_pct": -1.441069412571263, "date": "2026-07-21"}, {"trade_id": 5, "entry_time": "2026-07-22 09:30", "exit_time": "2026-07-22 10:05", "instrument": "NIFTY 24000 PE", "option_type": "PE", "strike": 24000, "spot_entry": 24024.25, "spot_exit": 24050.9, "entry_premium": 60.61, "fill_price": 60.91, "exit_premium": 48.49, "exit_price": 48.24, "quantity": 50, "gross_pnl": -633.36, "brokerage": 40.0, "stt": 1.51, "exchange_charges": 2.89, "gst": 7.72, "total_charges": 52.28, "net_pnl": -685.64, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 35, "entry_delta": -0.4355, "entry_theta": -27.56, "entry_iv": 13.29, "entry_pcr": 0.96, "oi_quadrant": "Short Buildup", "cum_pnl": -3173.76, "equity": 146826.24, "peak": 149668.71, "drawdown": -2842.470000000001, "drawdown_pct": -1.899174516837889, "date": "2026-07-22"}, {"trade_id": 6, "entry_time": "2026-07-23 09:30", "exit_time": "2026-07-23 09:50", "instrument": "NIFTY 23900 PE", "option_type": "PE", "strike": 23900, "spot_entry": 23917.9, "spot_exit": 23923.2, "entry_premium": 25.0, "fill_price": 25.13, "exit_premium": 20.0, "exit_price": 19.9, "quantity": 50, "gross_pnl": -261.28, "brokerage": 40.0, "stt": 0.62, "exchange_charges": 1.19, "gst": 7.41, "total_charges": 49.3, "net_pnl": -310.58, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 20, "entry_delta": -0.4103, "entry_theta": -63.89, "entry_iv": 13.48, "entry_pcr": 0.97, "oi_quadrant": "Short Buildup", "cum_pnl": -3484.34, "equity": 146515.66, "peak": 149668.71, "drawdown": -3153.0499999999884, "drawdown_pct": -2.1066861603871567, "date": "2026-07-23"}, {"trade_id": 7, "entry_time": "2026-07-24 09:30", "exit_time": "2026-07-24 12:25", "instrument": "NIFTY 23700 PE", "option_type": "PE", "strike": 23700, "spot_entry": 23688.6, "spot_exit": 23784.25, "entry_premium": 166.01, "fill_price": 166.84, "exit_premium": 132.81, "exit_price": 132.15, "quantity": 50, "gross_pnl": -1734.84, "brokerage": 40.0, "stt": 4.13, "exchange_charges": 7.92, "gst": 8.63, "total_charges": 61.13, "net_pnl": -1795.97, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 175, "entry_delta": -0.4826, "entry_theta": -11.81, "entry_iv": 14.03, "entry_pcr": 0.95, "oi_quadrant": "Short Buildup", "cum_pnl": -5280.31, "equity": 144719.69, "peak": 149668.71, "drawdown": -4949.0199999999895, "drawdown_pct": -3.306649733267555, "date": "2026-07-24"}, {"trade_id": 8, "entry_time": "2026-07-27 09:30", "exit_time": "2026-07-27 14:00", "instrument": "NIFTY 23950 PE", "option_type": "PE", "strike": 23950, "spot_entry": 23937.35, "spot_exit": 23984.65, "entry_premium": 113.44, "fill_price": 114.01, "exit_premium": 90.75, "exit_price": 90.3, "quantity": 50, "gross_pnl": -1185.46, "brokerage": 40.0, "stt": 2.82, "exchange_charges": 5.41, "gst": 8.17, "total_charges": 56.72, "net_pnl": -1242.18, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 270, "entry_delta": -0.4959, "entry_theta": -15.42, "entry_iv": 12.66, "entry_pcr": 0.99, "oi_quadrant": "Short Buildup", "cum_pnl": -6522.490000000001, "equity": 143477.51, "peak": 149668.71, "drawdown": -6191.1999999999825, "drawdown_pct": -4.136602767539042, "date": "2026-07-27"}, {"trade_id": 9, "entry_time": "2026-07-28 09:30", "exit_time": "2026-07-28 10:45", "instrument": "NIFTY 24000 PE", "option_type": "PE", "strike": 24000, "spot_entry": 23993.75, "spot_exit": 24030.2, "entry_premium": 92.68, "fill_price": 93.15, "exit_premium": 74.15, "exit_price": 73.78, "quantity": 50, "gross_pnl": -968.56, "brokerage": 40.0, "stt": 2.31, "exchange_charges": 4.42, "gst": 8.0, "total_charges": 54.98, "net_pnl": -1023.54, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 75, "entry_delta": -0.4924, "entry_theta": -18.86, "entry_iv": 12.56, "entry_pcr": 0.99, "oi_quadrant": "Short Buildup", "cum_pnl": -7546.030000000001, "equity": 142453.97, "peak": 149668.71, "drawdown": -7214.739999999991, "drawdown_pct": -4.820473163696, "date": "2026-07-28"}, {"trade_id": 10, "entry_time": "2026-07-29 09:30", "exit_time": "2026-07-29 14:00", "instrument": "NIFTY 24200 CE", "option_type": "CE", "strike": 24200, "spot_entry": 24187.95, "spot_exit": 24267.1, "entry_premium": 64.52, "fill_price": 64.85, "exit_premium": 103.24, "exit_price": 102.72, "quantity": 50, "gross_pnl": 1893.8, "brokerage": 40.0, "stt": 3.21, "exchange_charges": 4.44, "gst": 8.0, "total_charges": 55.9, "net_pnl": 1837.9, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 270, "entry_delta": 0.4858, "entry_theta": -29.2, "entry_iv": 12.01, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -5708.130000000001, "equity": 144291.87, "peak": 149668.71, "drawdown": -5376.8399999999965, "drawdown_pct": -3.5924943830945, "date": "2026-07-29"}, {"trade_id": 11, "entry_time": "2026-07-30 09:30", "exit_time": "2026-07-30 09:40", "instrument": "NIFTY 24250 PE", "option_type": "PE", "strike": 24250, "spot_entry": 24274.4, "spot_exit": 24256.25, "entry_premium": 19.72, "fill_price": 19.81, "exit_premium": 31.54, "exit_price": 31.39, "quantity": 50, "gross_pnl": 578.64, "brokerage": 40.0, "stt": 0.98, "exchange_charges": 1.36, "gst": 7.44, "total_charges": 49.86, "net_pnl": 528.78, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 10, "entry_delta": -0.3701, "entry_theta": -56.76, "entry_iv": 12.16, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -5179.350000000001, "equity": 144820.65, "peak": 149668.71, "drawdown": -4848.059999999998, "drawdown_pct": -3.23919408405404, "date": "2026-07-30"}, {"trade_id": 12, "entry_time": "2026-07-31 09:30", "exit_time": "2026-07-31 11:25", "instrument": "NIFTY 24300 PE", "option_type": "PE", "strike": 24300, "spot_entry": 24312.25, "spot_exit": 24365.7, "entry_premium": 130.28, "fill_price": 130.93, "exit_premium": 104.22, "exit_price": 103.7, "quantity": 50, "gross_pnl": -1361.38, "brokerage": 40.0, "stt": 3.24, "exchange_charges": 6.22, "gst": 8.32, "total_charges": 58.13, "net_pnl": -1419.51, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 115, "entry_delta": -0.4551, "entry_theta": -9.88, "entry_iv": 11.76, "entry_pcr": 1.01, "oi_quadrant": "Short Buildup", "cum_pnl": -6598.8600000000015, "equity": 143401.13999999998, "peak": 149668.71, "drawdown": -6267.570000000007, "drawdown_pct": -4.187628796960973, "date": "2026-07-31"}, {"trade_id": 13, "entry_time": "2026-08-03 09:30", "exit_time": "2026-08-03 15:15", "instrument": "NIFTY 24550 CE", "option_type": "CE", "strike": 24550, "spot_entry": 24553.45, "spot_exit": 24573.35, "entry_premium": 119.24, "fill_price": 119.84, "exit_premium": 125.35, "exit_price": 124.72, "quantity": 50, "gross_pnl": 244.4, "brokerage": 40.0, "stt": 3.9, "exchange_charges": 6.48, "gst": 8.37, "total_charges": 59.11, "net_pnl": 185.29, "return_pct": 4.08, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": 0.5277, "entry_theta": -19.22, "entry_iv": 11.93, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -6413.5700000000015, "equity": 143586.43, "peak": 149668.71, "drawdown": -6082.279999999999, "drawdown_pct": -4.063828705412106, "date": "2026-08-03"}, {"trade_id": 14, "entry_time": "2026-08-04 09:30", "exit_time": "2026-08-04 09:45", "instrument": "NIFTY 24600 PE", "option_type": "PE", "strike": 24600, "spot_entry": 24590.65, "spot_exit": 24635.15, "entry_premium": 93.61, "fill_price": 94.08, "exit_premium": 74.89, "exit_price": 74.51, "quantity": 50, "gross_pnl": -978.22, "brokerage": 40.0, "stt": 2.33, "exchange_charges": 4.47, "gst": 8.0, "total_charges": 55.05, "net_pnl": -1033.27, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 15, "entry_delta": -0.4972, "entry_theta": -18.68, "entry_iv": 12.19, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -7446.840000000002, "equity": 142553.16, "peak": 149668.71, "drawdown": -7115.549999999988, "drawdown_pct": -4.754200126399158, "date": "2026-08-04"}, {"trade_id": 15, "entry_time": "2026-08-05 09:30", "exit_time": "2026-08-05 10:55", "instrument": "NIFTY 24600 PE", "option_type": "PE", "strike": 24600, "spot_entry": 24611.05, "spot_exit": 24643.05, "entry_premium": 61.3, "fill_price": 61.61, "exit_premium": 49.04, "exit_price": 48.79, "quantity": 50, "gross_pnl": -640.58, "brokerage": 40.0, "stt": 1.52, "exchange_charges": 2.93, "gst": 7.73, "total_charges": 52.34, "net_pnl": -692.92, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 85, "entry_delta": -0.4607, "entry_theta": -25.56, "entry_iv": 12.06, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -8139.760000000002, "equity": 141860.24, "peak": 149668.71, "drawdown": -7808.470000000001, "drawdown_pct": -5.217169306797661, "date": "2026-08-05"}, {"trade_id": 16, "entry_time": "2026-08-06 09:30", "exit_time": "2026-08-06 09:35", "instrument": "NIFTY 24600 PE", "option_type": "PE", "strike": 24600, "spot_entry": 24624.55, "spot_exit": 24632.95, "entry_premium": 20.07, "fill_price": 20.17, "exit_premium": 16.06, "exit_price": 15.98, "quantity": 50, "gross_pnl": -209.78, "brokerage": 40.0, "stt": 0.5, "exchange_charges": 0.96, "gst": 7.37, "total_charges": 48.88, "net_pnl": -258.66, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": -0.371, "entry_theta": -57.62, "entry_iv": 12.16, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -8398.420000000002, "equity": 141601.58, "peak": 149668.71, "drawdown": -8067.130000000005, "drawdown_pct": -5.389991000791017, "date": "2026-08-06"}, {"trade_id": 17, "entry_time": "2026-08-07 09:30", "exit_time": "2026-08-07 12:15", "instrument": "NIFTY 24600 CE", "option_type": "CE", "strike": 24600, "spot_entry": 24601.7, "spot_exit": 24537.45, "entry_premium": 170.98, "fill_price": 171.83, "exit_premium": 136.78, "exit_price": 136.1, "quantity": 50, "gross_pnl": -1786.71, "brokerage": 40.0, "stt": 4.25, "exchange_charges": 8.16, "gst": 8.67, "total_charges": 61.54, "net_pnl": -1848.25, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 165, "entry_delta": 0.5328, "entry_theta": -14.76, "entry_iv": 12.16, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -10246.670000000002, "equity": 139753.33, "peak": 149668.71, "drawdown": -9915.380000000005, "drawdown_pct": -6.624885054464627, "date": "2026-08-07"}, {"trade_id": 18, "entry_time": "2026-08-10 09:30", "exit_time": "2026-08-10 10:20", "instrument": "NIFTY 24550 PE", "option_type": "PE", "strike": 24550, "spot_entry": 24534.35, "spot_exit": 24592.55, "entry_premium": 113.83, "fill_price": 114.4, "exit_premium": 91.07, "exit_price": 90.61, "quantity": 50, "gross_pnl": -1189.56, "brokerage": 40.0, "stt": 2.83, "exchange_charges": 5.43, "gst": 8.18, "total_charges": 56.75, "net_pnl": -1246.31, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 50, "entry_delta": -0.4997, "entry_theta": -15.21, "entry_iv": 12.25, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -11492.980000000001, "equity": 138507.02, "peak": 149668.71, "drawdown": -11161.690000000002, "drawdown_pct": -7.457597516541703, "date": "2026-08-10"}, {"trade_id": 19, "entry_time": "2026-08-11 09:30", "exit_time": "2026-08-11 11:00", "instrument": "NIFTY 24500 CE", "option_type": "CE", "strike": 24500, "spot_entry": 24488.35, "spot_exit": 24452.0, "entry_premium": 90.02, "fill_price": 90.47, "exit_premium": 72.02, "exit_price": 71.66, "quantity": 50, "gross_pnl": -940.75, "brokerage": 40.0, "stt": 2.24, "exchange_charges": 4.3, "gst": 7.97, "total_charges": 54.75, "net_pnl": -995.5, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 90, "entry_delta": 0.4986, "entry_theta": -22.38, "entry_iv": 11.86, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -12488.480000000001, "equity": 137511.52, "peak": 149668.71, "drawdown": -12157.190000000002, "drawdown_pct": -8.122733201883015, "date": "2026-08-11"}, {"trade_id": 20, "entry_time": "2026-08-12 09:30", "exit_time": "2026-08-12 10:00", "instrument": "NIFTY 24450 PE", "option_type": "PE", "strike": 24450, "spot_entry": 24440.7, "spot_exit": 24362.9, "entry_premium": 68.63, "fill_price": 68.98, "exit_premium": 109.82, "exit_price": 109.27, "quantity": 50, "gross_pnl": 2014.42, "brokerage": 40.0, "stt": 3.41, "exchange_charges": 4.72, "gst": 8.05, "total_charges": 56.46, "net_pnl": 1957.96, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 30, "entry_delta": -0.5079, "entry_theta": -24.46, "entry_iv": 11.69, "entry_pcr": 1.01, "oi_quadrant": "Short Buildup", "cum_pnl": -10530.52, "equity": 139469.48, "peak": 149668.71, "drawdown": -10199.229999999981, "drawdown_pct": -6.814537253645055, "date": "2026-08-12"}, {"trade_id": 21, "entry_time": "2026-08-13 09:30", "exit_time": "2026-08-13 09:35", "instrument": "NIFTY 24300 PE", "option_type": "PE", "strike": 24300, "spot_entry": 24324.35, "spot_exit": 24339.65, "entry_premium": 18.02, "fill_price": 18.11, "exit_premium": 14.42, "exit_price": 14.34, "quantity": 50, "gross_pnl": -188.31, "brokerage": 40.0, "stt": 0.45, "exchange_charges": 0.86, "gst": 7.35, "total_charges": 48.71, "net_pnl": -237.02, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": -0.3626, "entry_theta": -52.97, "entry_iv": 11.42, "entry_pcr": 1.02, "oi_quadrant": "Short Buildup", "cum_pnl": -10767.54, "equity": 139232.46, "peak": 149668.71, "drawdown": -10436.25, "drawdown_pct": -6.972900347707949, "date": "2026-08-13"}, {"trade_id": 22, "entry_time": "2026-08-14 09:30", "exit_time": "2026-08-14 15:15", "instrument": "NIFTY 24350 CE", "option_type": "CE", "strike": 24350, "spot_entry": 24325.75, "spot_exit": 24354.85, "entry_premium": 144.98, "fill_price": 145.71, "exit_premium": 156.85, "exit_price": 156.07, "quantity": 50, "gross_pnl": 518.01, "brokerage": 40.0, "stt": 4.88, "exchange_charges": 8.0, "gst": 8.64, "total_charges": 61.97, "net_pnl": 456.04, "return_pct": 7.11, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": 0.5061, "entry_theta": -13.66, "entry_iv": 11.31, "entry_pcr": 1.02, "oi_quadrant": "Long Buildup", "cum_pnl": -10311.5, "equity": 139688.5, "peak": 149668.71, "drawdown": -9980.209999999992, "drawdown_pct": -6.668200721446715, "date": "2026-08-14"}, {"trade_id": 23, "entry_time": "2026-08-17 09:30", "exit_time": "2026-08-17 12:45", "instrument": "NIFTY 24300 PE", "option_type": "PE", "strike": 24300, "spot_entry": 24287.7, "spot_exit": 24321.6, "entry_premium": 102.68, "fill_price": 103.19, "exit_premium": 82.14, "exit_price": 81.73, "quantity": 50, "gross_pnl": -1072.99, "brokerage": 40.0, "stt": 2.55, "exchange_charges": 4.9, "gst": 8.08, "total_charges": 55.81, "net_pnl": -1128.8, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 195, "entry_delta": -0.4952, "entry_theta": -13.78, "entry_iv": 11.33, "entry_pcr": 1.02, "oi_quadrant": "Short Buildup", "cum_pnl": -11440.3, "equity": 138559.7, "peak": 149668.71, "drawdown": -11109.00999999998, "drawdown_pct": -7.422399778818152, "date": "2026-08-17"}, {"trade_id": 24, "entry_time": "2026-08-18 09:30", "exit_time": "2026-08-18 15:15", "instrument": "NIFTY 24250 PE", "option_type": "PE", "strike": 24250, "spot_entry": 24232.65, "spot_exit": 24166.35, "entry_premium": 90.31, "fill_price": 90.76, "exit_premium": 124.5, "exit_price": 123.88, "quantity": 50, "gross_pnl": 1655.74, "brokerage": 40.0, "stt": 3.87, "exchange_charges": 5.69, "gst": 8.22, "total_charges": 58.1, "net_pnl": 1597.64, "return_pct": 36.48, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": -0.5123, "entry_theta": -16.98, "entry_iv": 11.39, "entry_pcr": 1.03, "oi_quadrant": "Short Buildup", "cum_pnl": -9842.66, "equity": 140157.34, "peak": 149668.71, "drawdown": -9511.369999999995, "drawdown_pct": -6.354948873415155, "date": "2026-08-18"}, {"trade_id": 25, "entry_time": "2026-08-19 09:30", "exit_time": "2026-08-19 09:50", "instrument": "NIFTY 24050 PE", "option_type": "PE", "strike": 24050, "spot_entry": 24073.85, "spot_exit": 24099.75, "entry_premium": 50.03, "fill_price": 50.28, "exit_premium": 40.02, "exit_price": 39.82, "quantity": 50, "gross_pnl": -522.78, "brokerage": 40.0, "stt": 1.24, "exchange_charges": 2.39, "gst": 7.63, "total_charges": 51.4, "net_pnl": -574.18, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 20, "entry_delta": -0.426, "entry_theta": -23.18, "entry_iv": 11.32, "entry_pcr": 1.02, "oi_quadrant": "Short Buildup", "cum_pnl": -10416.84, "equity": 139583.16, "peak": 149668.71, "drawdown": -10085.549999999988, "drawdown_pct": -6.73858283404727, "date": "2026-08-19"}, {"trade_id": 26, "entry_time": "2026-08-20 09:30", "exit_time": "2026-08-20 11:20", "instrument": "NIFTY 24200 CE", "option_type": "CE", "strike": 24200, "spot_entry": 24197.9, "spot_exit": 24198.1, "entry_premium": 26.67, "fill_price": 26.8, "exit_premium": 21.33, "exit_price": 21.23, "quantity": 50, "gross_pnl": -278.68, "brokerage": 40.0, "stt": 0.66, "exchange_charges": 1.27, "gst": 7.43, "total_charges": 49.44, "net_pnl": -328.12, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 110, "entry_delta": 0.4946, "entry_theta": -56.51, "entry_iv": 10.76, "entry_pcr": 1.04, "oi_quadrant": "Long Buildup", "cum_pnl": -10744.960000000001, "equity": 139255.04, "peak": 149668.71, "drawdown": -10413.669999999984, "drawdown_pct": -6.957813693991205, "date": "2026-08-20"}, {"trade_id": 27, "entry_time": "2026-08-21 09:30", "exit_time": "2026-08-21 10:50", "instrument": "NIFTY 24200 PE", "option_type": "PE", "strike": 24200, "spot_entry": 24208.8, "spot_exit": 24264.65, "entry_premium": 124.26, "fill_price": 124.88, "exit_premium": 99.41, "exit_price": 98.91, "quantity": 50, "gross_pnl": -1298.48, "brokerage": 40.0, "stt": 3.09, "exchange_charges": 5.93, "gst": 8.27, "total_charges": 57.62, "net_pnl": -1356.1, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 80, "entry_delta": -0.457, "entry_theta": -9.27, "entry_iv": 11.2, "entry_pcr": 1.03, "oi_quadrant": "Short Buildup", "cum_pnl": -12101.060000000001, "equity": 137898.94, "peak": 149668.71, "drawdown": -11769.76999999999, "drawdown_pct": -7.863881502018685, "date": "2026-08-21"}, {"trade_id": 28, "entry_time": "2026-08-24 09:30", "exit_time": "2026-08-24 13:05", "instrument": "NIFTY 24300 PE", "option_type": "PE", "strike": 24300, "spot_entry": 24276.75, "spot_exit": 24159.8, "entry_premium": 110.02, "fill_price": 110.57, "exit_premium": 176.03, "exit_price": 175.15, "quantity": 50, "gross_pnl": 3229.06, "brokerage": 40.0, "stt": 5.47, "exchange_charges": 7.57, "gst": 8.56, "total_charges": 62.04, "net_pnl": 3167.02, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 215, "entry_delta": -0.5117, "entry_theta": -13.98, "entry_iv": 11.53, "entry_pcr": 1.02, "oi_quadrant": "Short Buildup", "cum_pnl": -8934.04, "equity": 141065.96, "peak": 149668.71, "drawdown": -8602.75, "drawdown_pct": -5.747861393339998, "date": "2026-08-24"}, {"trade_id": 29, "entry_time": "2026-08-25 09:30", "exit_time": "2026-08-25 09:40", "instrument": "NIFTY 24200 CE", "option_type": "CE", "strike": 24200, "spot_entry": 24190.9, "spot_exit": 24154.85, "entry_premium": 84.22, "fill_price": 84.64, "exit_premium": 67.38, "exit_price": 67.04, "quantity": 50, "gross_pnl": -880.09, "brokerage": 40.0, "stt": 2.09, "exchange_charges": 4.02, "gst": 7.92, "total_charges": 54.27, "net_pnl": -934.36, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 10, "entry_delta": 0.5029, "entry_theta": -20.81, "entry_iv": 11.08, "entry_pcr": 1.03, "oi_quadrant": "Long Buildup", "cum_pnl": -9868.400000000001, "equity": 140131.6, "peak": 149668.71, "drawdown": -9537.109999999986, "drawdown_pct": -6.372146856881433, "date": "2026-08-25"}, {"trade_id": 30, "entry_time": "2026-08-26 09:30", "exit_time": "2026-08-26 09:40", "instrument": "NIFTY 24350 PE", "option_type": "PE", "strike": 24350, "spot_entry": 24344.65, "spot_exit": 24371.6, "entry_premium": 60.02, "fill_price": 60.32, "exit_premium": 48.02, "exit_price": 47.78, "quantity": 50, "gross_pnl": -627.22, "brokerage": 40.0, "stt": 1.49, "exchange_charges": 2.86, "gst": 7.72, "total_charges": 52.24, "net_pnl": -679.46, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 10, "entry_delta": -0.4986, "entry_theta": -21.87, "entry_iv": 10.57, "entry_pcr": 1.05, "oi_quadrant": "Short Buildup", "cum_pnl": -10547.86, "equity": 139452.14, "peak": 149668.71, "drawdown": -10216.569999999978, "drawdown_pct": -6.826122841574554, "date": "2026-08-26"}, {"trade_id": 31, "entry_time": "2026-08-27 09:30", "exit_time": "2026-08-27 09:35", "instrument": "NIFTY 24200 CE", "option_type": "CE", "strike": 24200, "spot_entry": 24210.85, "spot_exit": 24198.65, "entry_premium": 34.33, "fill_price": 34.5, "exit_premium": 27.47, "exit_price": 27.33, "quantity": 50, "gross_pnl": -358.78, "brokerage": 40.0, "stt": 0.85, "exchange_charges": 1.64, "gst": 7.49, "total_charges": 50.08, "net_pnl": -408.86, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": 0.5681, "entry_theta": -57.61, "entry_iv": 11.07, "entry_pcr": 1.03, "oi_quadrant": "Long Buildup", "cum_pnl": -10956.720000000001, "equity": 139043.28, "peak": 149668.71, "drawdown": -10625.429999999993, "drawdown_pct": -7.099299512904196, "date": "2026-08-27"}, {"trade_id": 32, "entry_time": "2026-08-28 09:30", "exit_time": "2026-08-28 15:15", "instrument": "NIFTY 24150 PE", "option_type": "PE", "strike": 24150, "spot_entry": 24145.45, "spot_exit": 24142.45, "entry_premium": 123.66, "fill_price": 124.28, "exit_premium": 122.97, "exit_price": 122.36, "quantity": 50, "gross_pnl": -96.02, "brokerage": 40.0, "stt": 3.82, "exchange_charges": 6.54, "gst": 8.38, "total_charges": 59.11, "net_pnl": -155.13, "return_pct": -1.55, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": -0.4709, "entry_theta": -8.7, "entry_iv": 10.68, "entry_pcr": 1.05, "oi_quadrant": "Short Buildup", "cum_pnl": -11111.85, "equity": 138888.15, "peak": 149668.71, "drawdown": -10780.559999999998, "drawdown_pct": -7.202948431906709, "date": "2026-08-28"}, {"trade_id": 33, "entry_time": "2026-08-31 09:30", "exit_time": "2026-08-31 09:55", "instrument": "NIFTY 24050 CE", "option_type": "CE", "strike": 24050, "spot_entry": 24057.55, "spot_exit": 24025.5, "entry_premium": 112.35, "fill_price": 112.91, "exit_premium": 89.88, "exit_price": 89.43, "quantity": 50, "gross_pnl": -1174.07, "brokerage": 40.0, "stt": 2.79, "exchange_charges": 5.36, "gst": 8.17, "total_charges": 56.63, "net_pnl": -1230.7, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 25, "entry_delta": 0.5358, "entry_theta": -17.81, "entry_iv": 11.19, "entry_pcr": 1.03, "oi_quadrant": "Long Buildup", "cum_pnl": -12342.550000000001, "equity": 137657.45, "peak": 149668.71, "drawdown": -12011.25999999998, "drawdown_pct": -8.02523119227792, "date": "2026-08-31"}, {"trade_id": 34, "entry_time": "2026-09-01 09:30", "exit_time": "2026-09-01 09:40", "instrument": "NIFTY 24050 CE", "option_type": "CE", "strike": 24050, "spot_entry": 24066.2, "spot_exit": 24028.35, "entry_premium": 100.06, "fill_price": 100.56, "exit_premium": 80.05, "exit_price": 79.65, "quantity": 50, "gross_pnl": -1045.66, "brokerage": 40.0, "stt": 2.49, "exchange_charges": 4.78, "gst": 8.06, "total_charges": 55.59, "net_pnl": -1101.25, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 10, "entry_delta": 0.5492, "entry_theta": -21.44, "entry_iv": 11.49, "entry_pcr": 1.02, "oi_quadrant": "Long Buildup", "cum_pnl": -13443.800000000001, "equity": 136556.2, "peak": 149668.71, "drawdown": -13112.50999999998, "drawdown_pct": -8.761022928573366, "date": "2026-09-01"}, {"trade_id": 35, "entry_time": "2026-09-02 09:30", "exit_time": "2026-09-02 11:25", "instrument": "NIFTY 23850 CE", "option_type": "CE", "strike": 23850, "spot_entry": 23843.25, "spot_exit": 23819.6, "entry_premium": 63.78, "fill_price": 64.09, "exit_premium": 51.02, "exit_price": 50.77, "quantity": 50, "gross_pnl": -666.46, "brokerage": 40.0, "stt": 1.59, "exchange_charges": 3.04, "gst": 7.75, "total_charges": 52.55, "net_pnl": -719.01, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 115, "entry_delta": 0.4978, "entry_theta": -27.92, "entry_iv": 11.59, "entry_pcr": 1.02, "oi_quadrant": "Long Buildup", "cum_pnl": -14162.810000000001, "equity": 135837.19, "peak": 149668.71, "drawdown": -13831.51999999999, "drawdown_pct": -9.241423942252185, "date": "2026-09-02"}, {"trade_id": 36, "entry_time": "2026-09-03 09:30", "exit_time": "2026-09-03 10:25", "instrument": "NIFTY 24000 CE", "option_type": "CE", "strike": 24000, "spot_entry": 23994.25, "spot_exit": 23985.25, "entry_premium": 26.12, "fill_price": 26.25, "exit_premium": 20.9, "exit_price": 20.79, "quantity": 50, "gross_pnl": -272.98, "brokerage": 40.0, "stt": 0.65, "exchange_charges": 1.25, "gst": 7.42, "total_charges": 49.39, "net_pnl": -322.37, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 55, "entry_delta": 0.4744, "entry_theta": -58.74, "entry_iv": 11.34, "entry_pcr": 1.03, "oi_quadrant": "Long Buildup", "cum_pnl": -14485.180000000002, "equity": 135514.82, "peak": 149668.71, "drawdown": -14153.889999999985, "drawdown_pct": -9.456812983822728, "date": "2026-09-03"}, {"trade_id": 37, "entry_time": "2026-09-04 09:30", "exit_time": "2026-09-04 10:00", "instrument": "NIFTY 23900 PE", "option_type": "PE", "strike": 23900, "spot_entry": 23907.2, "spot_exit": 23959.3, "entry_premium": 116.95, "fill_price": 117.53, "exit_premium": 93.56, "exit_price": 93.09, "quantity": 50, "gross_pnl": -1222.11, "brokerage": 40.0, "stt": 2.91, "exchange_charges": 5.58, "gst": 8.2, "total_charges": 57.01, "net_pnl": -1279.12, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 30, "entry_delta": -0.4569, "entry_theta": -8.64, "entry_iv": 10.68, "entry_pcr": 1.04, "oi_quadrant": "Short Buildup", "cum_pnl": -15764.300000000003, "equity": 134235.7, "peak": 149668.71, "drawdown": -15433.00999999998, "drawdown_pct": -10.311447195609544, "date": "2026-09-04"}, {"trade_id": 38, "entry_time": "2026-09-07 09:30", "exit_time": "2026-09-07 10:15", "instrument": "NIFTY 23850 CE", "option_type": "CE", "strike": 23850, "spot_entry": 23839.2, "spot_exit": 23796.55, "entry_premium": 101.61, "fill_price": 102.12, "exit_premium": 81.29, "exit_price": 80.88, "quantity": 50, "gross_pnl": -1061.86, "brokerage": 40.0, "stt": 2.53, "exchange_charges": 4.85, "gst": 8.07, "total_charges": 55.72, "net_pnl": -1117.58, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 45, "entry_delta": 0.5069, "entry_theta": -17.54, "entry_iv": 11.16, "entry_pcr": 1.03, "oi_quadrant": "Long Buildup", "cum_pnl": -16881.880000000005, "equity": 133118.12, "peak": 149668.71, "drawdown": -16550.589999999997, "drawdown_pct": -11.05814969608544, "date": "2026-09-07"}, {"trade_id": 39, "entry_time": "2026-09-08 09:30", "exit_time": "2026-09-08 12:05", "instrument": "NIFTY 23700 CE", "option_type": "CE", "strike": 23700, "spot_entry": 23676.0, "spot_exit": 23644.35, "entry_premium": 76.22, "fill_price": 76.6, "exit_premium": 60.98, "exit_price": 60.67, "quantity": 50, "gross_pnl": -796.52, "brokerage": 40.0, "stt": 1.9, "exchange_charges": 3.64, "gst": 7.85, "total_charges": 53.59, "net_pnl": -850.11, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 155, "entry_delta": 0.474, "entry_theta": -20.46, "entry_iv": 11.23, "entry_pcr": 1.02, "oi_quadrant": "Long Buildup", "cum_pnl": -17731.990000000005, "equity": 132268.01, "peak": 149668.71, "drawdown": -17400.699999999983, "drawdown_pct": -11.626144168677598, "date": "2026-09-08"}, {"trade_id": 40, "entry_time": "2026-09-09 09:30", "exit_time": "2026-09-09 09:55", "instrument": "NIFTY 23500 CE", "option_type": "CE", "strike": 23500, "spot_entry": 23515.9, "spot_exit": 23488.7, "entry_premium": 76.5, "fill_price": 76.88, "exit_premium": 61.2, "exit_price": 60.89, "quantity": 50, "gross_pnl": -799.39, "brokerage": 40.0, "stt": 1.9, "exchange_charges": 3.65, "gst": 7.86, "total_charges": 53.62, "net_pnl": -853.01, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 25, "entry_delta": 0.5527, "entry_theta": -28.26, "entry_iv": 11.92, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -18585.000000000004, "equity": 131415.0, "peak": 149668.71, "drawdown": -18253.709999999992, "drawdown_pct": -12.196076254014612, "date": "2026-09-09"}, {"trade_id": 41, "entry_time": "2026-09-10 09:30", "exit_time": "2026-09-10 09:50", "instrument": "NIFTY 23450 PE", "option_type": "PE", "strike": 23450, "spot_entry": 23432.45, "spot_exit": 23442.45, "entry_premium": 37.87, "fill_price": 38.06, "exit_premium": 30.3, "exit_price": 30.15, "quantity": 50, "gross_pnl": -395.75, "brokerage": 40.0, "stt": 0.94, "exchange_charges": 1.81, "gst": 7.53, "total_charges": 50.38, "net_pnl": -446.13, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 20, "entry_delta": -0.5896, "entry_theta": -53.83, "entry_iv": 11.8, "entry_pcr": 1.01, "oi_quadrant": "Short Buildup", "cum_pnl": -19031.130000000005, "equity": 130968.87, "peak": 149668.71, "drawdown": -18699.839999999997, "drawdown_pct": -12.49415458982709, "date": "2026-09-10"}, {"trade_id": 42, "entry_time": "2026-09-11 09:30", "exit_time": "2026-09-11 11:10", "instrument": "NIFTY 23250 PE", "option_type": "PE", "strike": 23250, "spot_entry": 23256.05, "spot_exit": 23337.9, "entry_premium": 133.65, "fill_price": 134.32, "exit_premium": 106.92, "exit_price": 106.38, "quantity": 50, "gross_pnl": -1396.62, "brokerage": 40.0, "stt": 3.32, "exchange_charges": 6.38, "gst": 8.35, "total_charges": 58.41, "net_pnl": -1455.03, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 100, "entry_delta": -0.4628, "entry_theta": -9.95, "entry_iv": 12.29, "entry_pcr": 1.0, "oi_quadrant": "Short Buildup", "cum_pnl": -20486.160000000003, "equity": 129513.84, "peak": 149668.71, "drawdown": -20154.869999999995, "drawdown_pct": -13.466321718146695, "date": "2026-09-11"}, {"trade_id": 43, "entry_time": "2026-09-15 09:30", "exit_time": "2026-09-15 10:30", "instrument": "NIFTY 23450 PE", "option_type": "PE", "strike": 23450, "spot_entry": 23455.55, "spot_exit": 23365.6, "entry_premium": 91.31, "fill_price": 91.77, "exit_premium": 146.1, "exit_price": 145.37, "quantity": 50, "gross_pnl": 2680.04, "brokerage": 40.0, "stt": 4.54, "exchange_charges": 6.28, "gst": 8.33, "total_charges": 59.51, "net_pnl": 2620.53, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 60, "entry_delta": -0.4738, "entry_theta": -19.89, "entry_iv": 13.43, "entry_pcr": 0.96, "oi_quadrant": "Short Buildup", "cum_pnl": -17865.630000000005, "equity": 132134.37, "peak": 149668.71, "drawdown": -17534.339999999997, "drawdown_pct": -11.715434709098513, "date": "2026-09-15"}, {"trade_id": 44, "entry_time": "2026-09-16 09:30", "exit_time": "2026-09-16 09:35", "instrument": "NIFTY 23200 CE", "option_type": "CE", "strike": 23200, "spot_entry": 23209.4, "spot_exit": 23151.3, "entry_premium": 78.83, "fill_price": 79.23, "exit_premium": 63.07, "exit_price": 62.75, "quantity": 50, "gross_pnl": -823.79, "brokerage": 40.0, "stt": 1.96, "exchange_charges": 3.76, "gst": 7.88, "total_charges": 53.81, "net_pnl": -877.6, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": 0.534, "entry_theta": -30.64, "entry_iv": 13.17, "entry_pcr": 0.98, "oi_quadrant": "Long Buildup", "cum_pnl": -18743.230000000003, "equity": 131256.77, "peak": 149668.71, "drawdown": -18411.940000000002, "drawdown_pct": -12.301796414227132, "date": "2026-09-16"}, {"trade_id": 45, "entry_time": "2026-09-17 09:30", "exit_time": "2026-09-17 09:35", "instrument": "NIFTY 23300 CE", "option_type": "CE", "strike": 23300, "spot_entry": 23284.45, "spot_exit": 23274.1, "entry_premium": 23.18, "fill_price": 23.3, "exit_premium": 18.54, "exit_price": 18.45, "quantity": 50, "gross_pnl": -242.22, "brokerage": 40.0, "stt": 0.58, "exchange_charges": 1.11, "gst": 7.4, "total_charges": 49.14, "net_pnl": -291.36, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": 0.4238, "entry_theta": -60.44, "entry_iv": 12.29, "entry_pcr": 1.01, "oi_quadrant": "Long Buildup", "cum_pnl": -19034.590000000004, "equity": 130965.41, "peak": 149668.71, "drawdown": -18703.29999999999, "drawdown_pct": -12.49646636227438, "date": "2026-09-17"}, {"trade_id": 46, "entry_time": "2026-09-18 09:30", "exit_time": "2026-09-18 14:05", "instrument": "NIFTY 23300 PE", "option_type": "PE", "strike": 23300, "spot_entry": 23289.65, "spot_exit": 23355.8, "entry_premium": 130.75, "fill_price": 131.4, "exit_premium": 104.6, "exit_price": 104.08, "quantity": 50, "gross_pnl": -1366.33, "brokerage": 40.0, "stt": 3.25, "exchange_charges": 6.24, "gst": 8.32, "total_charges": 58.17, "net_pnl": -1424.5, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 275, "entry_delta": -0.4792, "entry_theta": -9.06, "entry_iv": 11.39, "entry_pcr": 1.02, "oi_quadrant": "Short Buildup", "cum_pnl": -20459.090000000004, "equity": 129540.91, "peak": 149668.71, "drawdown": -20127.79999999999, "drawdown_pct": -13.448235105387084, "date": "2026-09-18"}, {"trade_id": 47, "entry_time": "2026-09-21 09:30", "exit_time": "2026-09-21 13:30", "instrument": "NIFTY 23400 PE", "option_type": "PE", "strike": 23400, "spot_entry": 23395.9, "spot_exit": 23436.65, "entry_premium": 94.38, "fill_price": 94.86, "exit_premium": 75.51, "exit_price": 75.13, "quantity": 50, "gross_pnl": -986.32, "brokerage": 40.0, "stt": 2.35, "exchange_charges": 4.5, "gst": 8.01, "total_charges": 55.12, "net_pnl": -1041.44, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 240, "entry_delta": -0.4827, "entry_theta": -13.21, "entry_iv": 11.25, "entry_pcr": 1.03, "oi_quadrant": "Short Buildup", "cum_pnl": -21500.530000000002, "equity": 128499.47, "peak": 149668.71, "drawdown": -21169.23999999999, "drawdown_pct": -14.144065249175991, "date": "2026-09-21"}, {"trade_id": 48, "entry_time": "2026-09-22 09:30", "exit_time": "2026-09-22 11:55", "instrument": "NIFTY 23450 PE", "option_type": "PE", "strike": 23450, "spot_entry": 23436.7, "spot_exit": 23360.85, "entry_premium": 82.7, "fill_price": 83.11, "exit_premium": 132.32, "exit_price": 131.66, "quantity": 50, "gross_pnl": 2427.27, "brokerage": 40.0, "stt": 4.11, "exchange_charges": 5.69, "gst": 8.22, "total_charges": 58.35, "net_pnl": 2368.92, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 145, "entry_delta": -0.506, "entry_theta": -15.82, "entry_iv": 11.0, "entry_pcr": 1.03, "oi_quadrant": "Short Buildup", "cum_pnl": -19131.61, "equity": 130868.39, "peak": 149668.71, "drawdown": -18800.319999999992, "drawdown_pct": -12.56128953072422, "date": "2026-09-22"}, {"trade_id": 49, "entry_time": "2026-09-23 09:30", "exit_time": "2026-09-23 11:10", "instrument": "NIFTY 23350 CE", "option_type": "CE", "strike": 23350, "spot_entry": 23373.4, "spot_exit": 23436.1, "entry_premium": 71.87, "fill_price": 72.23, "exit_premium": 114.99, "exit_price": 114.42, "quantity": 50, "gross_pnl": 2109.4, "brokerage": 40.0, "stt": 3.58, "exchange_charges": 4.95, "gst": 8.09, "total_charges": 56.89, "net_pnl": 2052.51, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 100, "entry_delta": 0.5813, "entry_theta": -24.53, "entry_iv": 10.35, "entry_pcr": 1.06, "oi_quadrant": "Long Buildup", "cum_pnl": -17079.1, "equity": 132920.9, "peak": 149668.71, "drawdown": -16747.809999999998, "drawdown_pct": -11.189920725581185, "date": "2026-09-23"}, {"trade_id": 50, "entry_time": "2026-09-24 09:30", "exit_time": "2026-09-24 09:35", "instrument": "NIFTY 23250 CE", "option_type": "CE", "strike": 23250, "spot_entry": 23264.1, "spot_exit": 23247.2, "entry_premium": 38.96, "fill_price": 39.15, "exit_premium": 31.17, "exit_price": 31.01, "quantity": 50, "gross_pnl": -407.13, "brokerage": 40.0, "stt": 0.97, "exchange_charges": 1.86, "gst": 7.53, "total_charges": 50.47, "net_pnl": -457.6, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": 0.5783, "entry_theta": -62.86, "entry_iv": 12.69, "entry_pcr": 0.99, "oi_quadrant": "Long Buildup", "cum_pnl": -17536.699999999997, "equity": 132463.3, "peak": 149668.71, "drawdown": -17205.410000000003, "drawdown_pct": -11.495662653870674, "date": "2026-09-24"}, {"trade_id": 51, "entry_time": "2026-09-25 09:30", "exit_time": "2026-09-25 15:15", "instrument": "NIFTY 23100 PE", "option_type": "PE", "strike": 23100, "spot_entry": 23111.45, "spot_exit": 23128.1, "entry_premium": 128.73, "fill_price": 129.37, "exit_premium": 118.9, "exit_price": 118.31, "quantity": 50, "gross_pnl": -553.2, "brokerage": 40.0, "stt": 3.7, "exchange_charges": 6.56, "gst": 8.38, "total_charges": 59.01, "net_pnl": -612.21, "return_pct": -8.55, "exit_reason": "EOD Square-Off (15:15)", "holding_mins": 345, "entry_delta": -0.4566, "entry_theta": -9.77, "entry_iv": 12.16, "entry_pcr": 1.01, "oi_quadrant": "Short Buildup", "cum_pnl": -18148.909999999996, "equity": 131851.09, "peak": 149668.71, "drawdown": -17817.619999999995, "drawdown_pct": -11.904706067153246, "date": "2026-09-25"}, {"trade_id": 52, "entry_time": "2026-09-28 09:30", "exit_time": "2026-09-28 14:35", "instrument": "NIFTY 22900 PE", "option_type": "PE", "strike": 22900, "spot_entry": 22893.4, "spot_exit": 22768.15, "entry_premium": 114.2, "fill_price": 114.77, "exit_premium": 182.73, "exit_price": 181.81, "quantity": 50, "gross_pnl": 3351.86, "brokerage": 40.0, "stt": 5.68, "exchange_charges": 7.86, "gst": 8.61, "total_charges": 62.6, "net_pnl": 3289.26, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 305, "entry_delta": -0.4884, "entry_theta": -16.07, "entry_iv": 13.64, "entry_pcr": 0.95, "oi_quadrant": "Short Buildup", "cum_pnl": -14859.649999999996, "equity": 135140.35, "peak": 149668.71, "drawdown": -14528.359999999986, "drawdown_pct": -9.707012240567844, "date": "2026-09-28"}, {"trade_id": 53, "entry_time": "2026-09-29 09:30", "exit_time": "2026-09-29 11:10", "instrument": "NIFTY 22600 PE", "option_type": "PE", "strike": 22600, "spot_entry": 22618.95, "spot_exit": 22683.95, "entry_premium": 81.57, "fill_price": 81.98, "exit_premium": 65.26, "exit_price": 64.93, "quantity": 50, "gross_pnl": -852.44, "brokerage": 40.0, "stt": 2.03, "exchange_charges": 3.89, "gst": 7.9, "total_charges": 54.04, "net_pnl": -906.48, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 100, "entry_delta": -0.4511, "entry_theta": -19.13, "entry_iv": 13.41, "entry_pcr": 0.96, "oi_quadrant": "Short Buildup", "cum_pnl": -15766.129999999996, "equity": 134233.87, "peak": 149668.71, "drawdown": -15434.839999999997, "drawdown_pct": -10.312669896065781, "date": "2026-09-29"}, {"trade_id": 54, "entry_time": "2026-09-30 09:30", "exit_time": "2026-09-30 09:45", "instrument": "NIFTY 22700 PE", "option_type": "PE", "strike": 22700, "spot_entry": 22690.0, "spot_exit": 22702.1, "entry_premium": 73.95, "fill_price": 74.32, "exit_premium": 59.16, "exit_price": 58.86, "quantity": 50, "gross_pnl": -772.74, "brokerage": 40.0, "stt": 1.84, "exchange_charges": 3.53, "gst": 7.84, "total_charges": 53.4, "net_pnl": -826.14, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 15, "entry_delta": -0.5095, "entry_theta": -26.51, "entry_iv": 13.49, "entry_pcr": 0.97, "oi_quadrant": "Short Buildup", "cum_pnl": -16592.269999999997, "equity": 133407.73, "peak": 149668.71, "drawdown": -16260.979999999981, "drawdown_pct": -10.864648997108334, "date": "2026-09-30"}, {"trade_id": 55, "entry_time": "2026-10-01 09:30", "exit_time": "2026-10-01 09:35", "instrument": "NIFTY 22550 PE", "option_type": "PE", "strike": 22550, "spot_entry": 22537.9, "spot_exit": 22564.5, "entry_premium": 39.86, "fill_price": 40.06, "exit_premium": 31.89, "exit_price": 31.73, "quantity": 50, "gross_pnl": -416.52, "brokerage": 40.0, "stt": 0.99, "exchange_charges": 1.9, "gst": 7.54, "total_charges": 50.54, "net_pnl": -467.06, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 5, "entry_delta": -0.551, "entry_theta": -65.3, "entry_iv": 14.46, "entry_pcr": 0.94, "oi_quadrant": "Short Buildup", "cum_pnl": -17059.329999999998, "equity": 132940.67, "peak": 149668.71, "drawdown": -16728.03999999998, "drawdown_pct": -11.17671155179996, "date": "2026-10-01"}, {"trade_id": 56, "entry_time": "2026-10-05 09:30", "exit_time": "2026-10-05 10:05", "instrument": "NIFTY 22600 CE", "option_type": "CE", "strike": 22600, "spot_entry": 22590.1, "spot_exit": 22562.65, "entry_premium": 127.23, "fill_price": 127.86, "exit_premium": 101.78, "exit_price": 101.27, "quantity": 50, "gross_pnl": -1329.51, "brokerage": 40.0, "stt": 3.16, "exchange_charges": 6.07, "gst": 8.29, "total_charges": 57.87, "net_pnl": -1387.38, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 35, "entry_delta": 0.5068, "entry_theta": -21.36, "entry_iv": 14.78, "entry_pcr": 0.93, "oi_quadrant": "Long Buildup", "cum_pnl": -18446.71, "equity": 131553.29, "peak": 149668.71, "drawdown": -18115.419999999984, "drawdown_pct": -12.103678851778694, "date": "2026-10-05"}, {"trade_id": 57, "entry_time": "2026-10-06 09:30", "exit_time": "2026-10-06 12:40", "instrument": "NIFTY 22600 CE", "option_type": "CE", "strike": 22600, "spot_entry": 22611.75, "spot_exit": 22719.35, "entry_premium": 107.07, "fill_price": 107.61, "exit_premium": 171.31, "exit_price": 170.46, "quantity": 50, "gross_pnl": 3142.55, "brokerage": 40.0, "stt": 5.33, "exchange_charges": 7.37, "gst": 8.53, "total_charges": 61.64, "net_pnl": 3080.91, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 190, "entry_delta": 0.5364, "entry_theta": -23.48, "entry_iv": 13.61, "entry_pcr": 0.96, "oi_quadrant": "Long Buildup", "cum_pnl": -15365.8, "equity": 134634.2, "peak": 149668.71, "drawdown": -15034.50999999998, "drawdown_pct": -10.045192478775277, "date": "2026-10-06"}, {"trade_id": 58, "entry_time": "2026-10-07 09:30", "exit_time": "2026-10-07 10:15", "instrument": "NIFTY 22600 PE", "option_type": "PE", "strike": 22600, "spot_entry": 22614.35, "spot_exit": 22656.85, "entry_premium": 64.0, "fill_price": 64.32, "exit_premium": 51.2, "exit_price": 50.94, "quantity": 50, "gross_pnl": -668.76, "brokerage": 40.0, "stt": 1.59, "exchange_charges": 3.05, "gst": 7.75, "total_charges": 52.57, "net_pnl": -721.33, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 45, "entry_delta": -0.4564, "entry_theta": -27.32, "entry_iv": 13.89, "entry_pcr": 0.95, "oi_quadrant": "Short Buildup", "cum_pnl": -16087.13, "equity": 133912.87, "peak": 149668.71, "drawdown": -15755.839999999997, "drawdown_pct": -10.527143582649973, "date": "2026-10-07"}, {"trade_id": 59, "entry_time": "2026-10-08 09:30", "exit_time": "2026-10-08 09:40", "instrument": "NIFTY 22500 CE", "option_type": "CE", "strike": 22500, "spot_entry": 22504.6, "spot_exit": 22472.45, "entry_premium": 38.76, "fill_price": 38.95, "exit_premium": 31.0, "exit_price": 30.85, "quantity": 50, "gross_pnl": -405.0, "brokerage": 40.0, "stt": 0.96, "exchange_charges": 1.85, "gst": 7.53, "total_charges": 50.45, "net_pnl": -455.45, "return_pct": -20.8, "exit_reason": "Stop Loss", "holding_mins": 10, "entry_delta": 0.5256, "entry_theta": -73.78, "entry_iv": 15.28, "entry_pcr": 0.91, "oi_quadrant": "Long Buildup", "cum_pnl": -16542.579999999998, "equity": 133457.42, "peak": 149668.71, "drawdown": -16211.289999999979, "drawdown_pct": -10.831449004938962, "date": "2026-10-08"}, {"trade_id": 60, "entry_time": "2026-10-09 09:30", "exit_time": "2026-10-09 14:15", "instrument": "NIFTY 22400 CE", "option_type": "CE", "strike": 22400, "spot_entry": 22393.8, "spot_exit": 22571.45, "entry_premium": 177.0, "fill_price": 177.88, "exit_premium": 283.2, "exit_price": 281.78, "quantity": 50, "gross_pnl": 5194.92, "brokerage": 40.0, "stt": 8.81, "exchange_charges": 12.18, "gst": 9.39, "total_charges": 71.07, "net_pnl": 5123.85, "return_pct": 58.41, "exit_reason": "Target Hit", "holding_mins": 285, "entry_delta": 0.5215, "entry_theta": -15.44, "entry_iv": 14.34, "entry_pcr": 0.95, "oi_quadrant": "Long Buildup", "cum_pnl": -11418.729999999998, "equity": 138581.27, "peak": 149668.71, "drawdown": -11087.440000000002, "drawdown_pct": -7.4079879488505, "date": "2026-10-09"}];
+
+        // 1. Plotly Equity Chart
+        const equityTrace = {
+            x: ["2026-07-16 09:40", "2026-07-17 10:15", "2026-07-20 10:15", "2026-07-21 15:15", "2026-07-22 10:05", "2026-07-23 09:50", "2026-07-24 12:25", "2026-07-27 14:00", "2026-07-28 10:45", "2026-07-29 14:00", "2026-07-30 09:40", "2026-07-31 11:25", "2026-08-03 15:15", "2026-08-04 09:45", "2026-08-05 10:55", "2026-08-06 09:35", "2026-08-07 12:15", "2026-08-10 10:20", "2026-08-11 11:00", "2026-08-12 10:00", "2026-08-13 09:35", "2026-08-14 15:15", "2026-08-17 12:45", "2026-08-18 15:15", "2026-08-19 09:50", "2026-08-20 11:20", "2026-08-21 10:50", "2026-08-24 13:05", "2026-08-25 09:40", "2026-08-26 09:40", "2026-08-27 09:35", "2026-08-28 15:15", "2026-08-31 09:55", "2026-09-01 09:40", "2026-09-02 11:25", "2026-09-03 10:25", "2026-09-04 10:00", "2026-09-07 10:15", "2026-09-08 12:05", "2026-09-09 09:55", "2026-09-10 09:50", "2026-09-11 11:10", "2026-09-15 10:30", "2026-09-16 09:35", "2026-09-17 09:35", "2026-09-18 14:05", "2026-09-21 13:30", "2026-09-22 11:55", "2026-09-23 11:10", "2026-09-24 09:35", "2026-09-25 15:15", "2026-09-28 14:35", "2026-09-29 11:10", "2026-09-30 09:45", "2026-10-01 09:35", "2026-10-05 10:05", "2026-10-06 12:40", "2026-10-07 10:15", "2026-10-08 09:40", "2026-10-09 14:15"],
+            y: [149668.71, 148040.25, 146719.24, 147511.88, 146826.24, 146515.66, 144719.69, 143477.51, 142453.97, 144291.87, 144820.65, 143401.13999999998, 143586.43, 142553.16, 141860.24, 141601.58, 139753.33, 138507.02, 137511.52, 139469.48, 139232.46, 139688.5, 138559.7, 140157.34, 139583.16, 139255.04, 137898.94, 141065.96, 140131.6, 139452.14, 139043.28, 138888.15, 137657.45, 136556.2, 135837.19, 135514.82, 134235.7, 133118.12, 132268.01, 131415.0, 130968.87, 129513.84, 132134.37, 131256.77, 130965.41, 129540.91, 128499.47, 130868.39, 132920.9, 132463.3, 131851.09, 135140.35, 134233.87, 133407.73, 132940.67, 131553.29, 134634.2, 133912.87, 133457.42, 138581.27],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Strategy Equity',
+            line: { color: '#10B981', width: 2.5 }
+        };
+
+        const peakTrace = {
+            x: ["2026-07-16 09:40", "2026-07-17 10:15", "2026-07-20 10:15", "2026-07-21 15:15", "2026-07-22 10:05", "2026-07-23 09:50", "2026-07-24 12:25", "2026-07-27 14:00", "2026-07-28 10:45", "2026-07-29 14:00", "2026-07-30 09:40", "2026-07-31 11:25", "2026-08-03 15:15", "2026-08-04 09:45", "2026-08-05 10:55", "2026-08-06 09:35", "2026-08-07 12:15", "2026-08-10 10:20", "2026-08-11 11:00", "2026-08-12 10:00", "2026-08-13 09:35", "2026-08-14 15:15", "2026-08-17 12:45", "2026-08-18 15:15", "2026-08-19 09:50", "2026-08-20 11:20", "2026-08-21 10:50", "2026-08-24 13:05", "2026-08-25 09:40", "2026-08-26 09:40", "2026-08-27 09:35", "2026-08-28 15:15", "2026-08-31 09:55", "2026-09-01 09:40", "2026-09-02 11:25", "2026-09-03 10:25", "2026-09-04 10:00", "2026-09-07 10:15", "2026-09-08 12:05", "2026-09-09 09:55", "2026-09-10 09:50", "2026-09-11 11:10", "2026-09-15 10:30", "2026-09-16 09:35", "2026-09-17 09:35", "2026-09-18 14:05", "2026-09-21 13:30", "2026-09-22 11:55", "2026-09-23 11:10", "2026-09-24 09:35", "2026-09-25 15:15", "2026-09-28 14:35", "2026-09-29 11:10", "2026-09-30 09:45", "2026-10-01 09:35", "2026-10-05 10:05", "2026-10-06 12:40", "2026-10-07 10:15", "2026-10-08 09:40", "2026-10-09 14:15"],
+            y: [149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71, 149668.71],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Peak Watermark',
+            line: { color: 'rgba(255, 255, 255, 0.25)', width: 1.5, dash: 'dot' }
+        };
+
+        const layoutDark = {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 50, r: 20, t: 20, b: 40 },
+            font: { family: 'Inter', color: '#9CA3AF' },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showgrid: true },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showgrid: true, tickformat: '₹,d' },
+            legend: { orientation: 'h', y: 1.15, x: 0 }
+        };
+
+        Plotly.newPlot('equityChart', [equityTrace, peakTrace], layoutDark, { responsive: true, displayModeBar: false });
+
+        // 2. Underwater Drawdown Chart
+        const ddTrace = {
+            x: ["2026-07-16 09:40", "2026-07-17 10:15", "2026-07-20 10:15", "2026-07-21 15:15", "2026-07-22 10:05", "2026-07-23 09:50", "2026-07-24 12:25", "2026-07-27 14:00", "2026-07-28 10:45", "2026-07-29 14:00", "2026-07-30 09:40", "2026-07-31 11:25", "2026-08-03 15:15", "2026-08-04 09:45", "2026-08-05 10:55", "2026-08-06 09:35", "2026-08-07 12:15", "2026-08-10 10:20", "2026-08-11 11:00", "2026-08-12 10:00", "2026-08-13 09:35", "2026-08-14 15:15", "2026-08-17 12:45", "2026-08-18 15:15", "2026-08-19 09:50", "2026-08-20 11:20", "2026-08-21 10:50", "2026-08-24 13:05", "2026-08-25 09:40", "2026-08-26 09:40", "2026-08-27 09:35", "2026-08-28 15:15", "2026-08-31 09:55", "2026-09-01 09:40", "2026-09-02 11:25", "2026-09-03 10:25", "2026-09-04 10:00", "2026-09-07 10:15", "2026-09-08 12:05", "2026-09-09 09:55", "2026-09-10 09:50", "2026-09-11 11:10", "2026-09-15 10:30", "2026-09-16 09:35", "2026-09-17 09:35", "2026-09-18 14:05", "2026-09-21 13:30", "2026-09-22 11:55", "2026-09-23 11:10", "2026-09-24 09:35", "2026-09-25 15:15", "2026-09-28 14:35", "2026-09-29 11:10", "2026-09-30 09:45", "2026-10-01 09:35", "2026-10-05 10:05", "2026-10-06 12:40", "2026-10-07 10:15", "2026-10-08 09:40", "2026-10-09 14:15"],
+            y: [0.0, -1.0880430518843864, -1.9706657456992855, -1.441069412571263, -1.899174516837889, -2.1066861603871567, -3.306649733267555, -4.136602767539042, -4.820473163696, -3.5924943830945, -3.23919408405404, -4.187628796960973, -4.063828705412106, -4.754200126399158, -5.217169306797661, -5.389991000791017, -6.624885054464627, -7.457597516541703, -8.122733201883015, -6.814537253645055, -6.972900347707949, -6.668200721446715, -7.422399778818152, -6.354948873415155, -6.73858283404727, -6.957813693991205, -7.863881502018685, -5.747861393339998, -6.372146856881433, -6.826122841574554, -7.099299512904196, -7.202948431906709, -8.02523119227792, -8.761022928573366, -9.241423942252185, -9.456812983822728, -10.311447195609544, -11.05814969608544, -11.626144168677598, -12.196076254014612, -12.49415458982709, -13.466321718146695, -11.715434709098513, -12.301796414227132, -12.49646636227438, -13.448235105387084, -14.144065249175991, -12.56128953072422, -11.189920725581185, -11.495662653870674, -11.904706067153246, -9.707012240567844, -10.312669896065781, -10.864648997108334, -11.17671155179996, -12.103678851778694, -10.045192478775277, -10.527143582649973, -10.831449004938962, -7.4079879488505],
+            type: 'scatter',
+            fill: 'tozeroy',
+            mode: 'lines',
+            name: 'Drawdown %',
+            fillcolor: 'rgba(239, 68, 68, 0.2)',
+            line: { color: '#EF4444', width: 1.5 }
+        };
+
+        const ddLayout = {
+            ...layoutDark,
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showgrid: true, ticksuffix: '%' },
+            showlegend: false
+        };
+
+        Plotly.newPlot('drawdownChart', [ddTrace], ddLayout, { responsive: true, displayModeBar: false });
+
+        // 3. Daily P&L Chart
+        const dailyTrace = {
+            x: ["2026-07-16", "2026-07-17", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09"],
+            y: [-331.29, -1628.46, -1321.01, 792.64, -685.64, -310.58, -1795.97, -1242.18, -1023.54, 1837.9, 528.78, -1419.51, 185.29, -1033.27, -692.92, -258.66, -1848.25, -1246.31, -995.5, 1957.96, -237.02, 456.04, -1128.8, 1597.64, -574.18, -328.12, -1356.1, 3167.02, -934.36, -679.46, -408.86, -155.13, -1230.7, -1101.25, -719.01, -322.37, -1279.12, -1117.58, -850.11, -853.01, -446.13, -1455.03, 2620.53, -877.6, -291.36, -1424.5, -1041.44, 2368.92, 2052.51, -457.6, -612.21, 3289.26, -906.48, -826.14, -467.06, -1387.38, 3080.91, -721.33, -455.45, 5123.85],
+            type: 'bar',
+            marker: { color: ["#ef4444", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#10b981", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#10b981", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#10b981", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#10b981", "#ef4444", "#ef4444", "#10b981"] },
+            name: 'Daily PnL'
+        };
+
+        Plotly.newPlot('dailyPnlChart', [dailyTrace], { ...layoutDark, showlegend: false }, { responsive: true, displayModeBar: false });
+
+        // Render Trade Table
+        function renderTable(trades) {
+            const tbody = document.getElementById('tradeTableBody');
+            tbody.innerHTML = '';
+            trades.forEach(t => {
+                const tr = document.createElement('tr');
+                const pnlClass = t.net_pnl >= 0 ? '#10B981' : '#EF4444';
+                const pnlSign = t.net_pnl >= 0 ? '+' : '';
+                
+                let reasonClass = 'status-eod';
+                if (t.exit_reason === 'Target Hit') reasonClass = 'status-target';
+                else if (t.exit_reason === 'Stop Loss') reasonClass = 'status-sl';
+                else if (t.exit_reason.includes('Trailing')) reasonClass = 'status-trail';
+
+                const optBadge = t.option_type === 'CE' ? '<span class="badge-ce">BUY CE</span>' : '<span class="badge-pe">BUY PE</span>';
+                const quadBadge = `<span style="background: rgba(167, 139, 250, 0.15); color: #C4B5FD; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${t.oi_quadrant || 'N/A'}</span>`;
+
+                tr.innerHTML = `
+                    <td>${t.trade_id}</td>
+                    <td>${t.entry_time}</td>
+                    <td>${t.exit_time}</td>
+                    <td>${optBadge} <strong>${t.instrument}</strong></td>
+                    <td>₹${t.spot_entry.toFixed(1)}</td>
+                    <td>₹${t.fill_price.toFixed(2)}</td>
+                    <td>₹${t.exit_price.toFixed(2)}</td>
+                    <td style="color: ${pnlClass}; font-weight: 700;">${pnlSign}₹${t.net_pnl.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    <td style="color: ${pnlClass};">${pnlSign}${t.return_pct.toFixed(2)}%</td>
+                    <td class="${reasonClass}">${t.exit_reason}</td>
+                    <td style="font-weight: 700; color: #67E8F9;">${t.entry_pcr ? t.entry_pcr.toFixed(2) : '1.00'}</td>
+                    <td>${quadBadge}</td>
+                    <td>${t.entry_delta.toFixed(2)}</td>
+                    <td>${t.holding_mins}m</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable(tradesData);
+
+        // Filter and Search
+        let currentFilter = 'ALL';
+        function filterTrades(type) {
+            currentFilter = type;
+            document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            applyFilters();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = tradesData.filter(t => {
+                if (currentFilter === 'CE' && t.option_type !== 'CE') return false;
+                if (currentFilter === 'PE' && t.option_type !== 'PE') return false;
+                if (currentFilter === 'WIN' && t.net_pnl <= 0) return false;
+                if (currentFilter === 'LOSS' && t.net_pnl > 0) return false;
+                
+                if (query) {
+                    const matchText = `${t.instrument} ${t.exit_reason} ${t.entry_time} ${t.exit_time}`.toLowerCase();
+                    return matchText.includes(query);
+                }
+                return true;
+            });
+            renderTable(filtered);
+        }
+    </script>
+</body>
+</html>

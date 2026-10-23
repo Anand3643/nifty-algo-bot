@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+logs/
+
+# Caches & large data sets
+scrip_master.json
+bot_state.json
+bot_trades.csv
+levels.json
+nifty_data/
+banknifty_data/
+data/
+scratch/
+yt/
+.env
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/

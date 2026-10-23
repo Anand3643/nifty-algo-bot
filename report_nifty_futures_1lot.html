@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Futures (1 Lot) Support & Resistance Backtest Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #0B0F19;
+            --bg-card: #111827;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-primary: #F9FAFB;
+            --text-secondary: #94A3B8;
+            --accent: #6366F1;
+            --green: #10B981;
+            --red: #EF4444;
+            --amber: #F59E0B;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            padding: 24px 32px;
+            min-height: 100vh;
+        }
+        .header {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; font-weight: 800; }
+        .header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818CF8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px; }
+        .kpi-val { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .table-wrap { overflow-x: auto; max-height: 480px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .pill-win { background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .pill-loss { background: rgba(239, 68, 68, 0.15); color: #F87171; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .pill-long { background: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 2px 6px; border-radius: 4px; }
+        .pill-short { background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>NIFTY Futures (1 Lot) Support & Resistance Backtest</h1>
+            <div class="sub">1 Lot = 25 Qty | Timeframe: 5M | Model: STEP S&R</div>
+        </div>
+        <div>
+            <span class="badge">NIFTY FUTURES 1 LOT</span>
+        </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label">Total Net PnL</div>
+            <div class="kpi-val" style="color: #EF4444;">Rs -3,729.81</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">ROI: -2.49%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Index Points</div>
+            <div class="kpi-val" style="color: #60A5FA;">+110.5 pts</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Avg +2.7 pts/trade</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-val" style="color: #FBBF24;">41.5%</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">17 Wins / 24 Losses</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Profit Factor</div>
+            <div class="kpi-val" style="color: #A78BFA;">1.23</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">RR: 1.73 : 1</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Max Drawdown</div>
+            <div class="kpi-val" style="color: #EF4444;">Rs 7,331.65</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Peak DD: -4.89%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Sharpe Ratio</div>
+            <div class="kpi-val" style="color: #34D399;">-2.00</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Annualized</div>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="card">
+        <div class="card-title">
+            <span>📈 Cumulative Equity Curve (Nifty Futures 1 Lot)</span>
+            <span style="font-size: 12px; color: var(--text-secondary);">Start: Rs 150,000 &rarr; End: Rs 146,270</span>
+        </div>
+        <div id="equityChart" style="height: 380px;"></div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">📊 Daily PnL Distribution (Rs)</div>
+            <div id="dailyChart" style="height: 300px;"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">📉 Underwater Drawdown Curve (%)</div>
+            <div id="ddChart" style="height: 300px;"></div>
+        </div>
+    </div>
+
+    <!-- TRADE LOG -->
+    <div class="card">
+        <div class="card-title">
+            <span>📋 Trade Execution Journal (41 Completed Trades)</span>
+            <span style="font-size: 12px; color: var(--text-secondary);">Exported to: trades_nifty_futures_1lot.csv</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Exit Time</th>
+                        <th>Direction</th>
+                        <th>Playbook</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>Points</th>
+                        <th>Gross PnL</th>
+                        <th>Taxes & Costs</th>
+                        <th>Net PnL</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>1</td>
+                        <td>2026-07-03</td>
+                        <td>13:40</td>
+                        <td>15:10</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>24287.4</td>
+                        <td>24273.5</td>
+                        <td style="color: #34D399; font-weight: bold;">+13.9</td>
+                        <td>Rs +348</td>
+                        <td>Rs 160</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +187</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>2</td>
+                        <td>2026-07-06</td>
+                        <td>09:45</td>
+                        <td>10:20</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>24380.9</td>
+                        <td>24403.2</td>
+                        <td style="color: #F87171; font-weight: bold;">-22.3</td>
+                        <td>Rs -558</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -718</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>3</td>
+                        <td>2026-07-13</td>
+                        <td>09:50</td>
+                        <td>10:25</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24116.6</td>
+                        <td>24154.2</td>
+                        <td style="color: #34D399; font-weight: bold;">+37.6</td>
+                        <td>Rs +940</td>
+                        <td>Rs 159</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +781</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>4</td>
+                        <td>2026-07-14</td>
+                        <td>10:50</td>
+                        <td>11:40</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24114.85</td>
+                        <td>24099.0</td>
+                        <td style="color: #F87171; font-weight: bold;">-15.8</td>
+                        <td>Rs -396</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -555</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>5</td>
+                        <td>2026-07-16</td>
+                        <td>09:50</td>
+                        <td>13:25</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>24126.35</td>
+                        <td>24102.85</td>
+                        <td style="color: #F87171; font-weight: bold;">-23.5</td>
+                        <td>Rs -588</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -747</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>6</td>
+                        <td>2026-07-20</td>
+                        <td>13:25</td>
+                        <td>15:10</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24244.1</td>
+                        <td>24237.35</td>
+                        <td style="color: #F87171; font-weight: bold;">-6.8</td>
+                        <td>Rs -169</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -329</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>7</td>
+                        <td>2026-07-21</td>
+                        <td>10:30</td>
+                        <td>13:00</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24186.25</td>
+                        <td>24140.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+45.5</td>
+                        <td>Rs +1,136</td>
+                        <td>Rs 160</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +977</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>8</td>
+                        <td>2026-07-23</td>
+                        <td>09:25</td>
+                        <td>09:35</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>23920.3</td>
+                        <td>23895.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+24.5</td>
+                        <td>Rs +612</td>
+                        <td>Rs 158</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +454</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>9</td>
+                        <td>2026-07-24</td>
+                        <td>12:35</td>
+                        <td>13:40</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>23772.0</td>
+                        <td>23747.2</td>
+                        <td style="color: #F87171; font-weight: bold;">-24.8</td>
+                        <td>Rs -620</td>
+                        <td>Rs 158</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -778</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>10</td>
+                        <td>2026-07-28</td>
+                        <td>13:40</td>
+                        <td>14:50</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>23984.15</td>
+                        <td>23968.6</td>
+                        <td style="color: #F87171; font-weight: bold;">-15.6</td>
+                        <td>Rs -389</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -547</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>11</td>
+                        <td>2026-07-30</td>
+                        <td>10:20</td>
+                        <td>10:30</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>24249.45</td>
+                        <td>24227.2</td>
+                        <td style="color: #F87171; font-weight: bold;">-22.2</td>
+                        <td>Rs -556</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -716</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>12</td>
+                        <td>2026-08-05</td>
+                        <td>10:05</td>
+                        <td>10:25</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>24606.7</td>
+                        <td>24579.65</td>
+                        <td style="color: #F87171; font-weight: bold;">-27.1</td>
+                        <td>Rs -676</td>
+                        <td>Rs 161</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -838</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>13</td>
+                        <td>2026-08-06</td>
+                        <td>10:05</td>
+                        <td>11:25</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>24621.5</td>
+                        <td>24674.2</td>
+                        <td style="color: #34D399; font-weight: bold;">+52.7</td>
+                        <td>Rs +1,318</td>
+                        <td>Rs 162</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,156</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>14</td>
+                        <td>2026-08-07</td>
+                        <td>10:15</td>
+                        <td>12:15</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24576.1</td>
+                        <td>24535.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+40.3</td>
+                        <td>Rs +1,008</td>
+                        <td>Rs 161</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +846</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>15</td>
+                        <td>2026-08-11</td>
+                        <td>09:30</td>
+                        <td>09:40</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24489.15</td>
+                        <td>24469.8</td>
+                        <td style="color: #F87171; font-weight: bold;">-19.4</td>
+                        <td>Rs -484</td>
+                        <td>Rs 161</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -645</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>16</td>
+                        <td>2026-08-12</td>
+                        <td>09:45</td>
+                        <td>10:00</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24401.0</td>
+                        <td>24370.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+30.2</td>
+                        <td>Rs +755</td>
+                        <td>Rs 161</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +594</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>17</td>
+                        <td>2026-08-13</td>
+                        <td>09:25</td>
+                        <td>09:30</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24339.95</td>
+                        <td>24317.3</td>
+                        <td style="color: #F87171; font-weight: bold;">-22.6</td>
+                        <td>Rs -566</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -726</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>18</td>
+                        <td>2026-08-14</td>
+                        <td>10:15</td>
+                        <td>13:40</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24336.1</td>
+                        <td>24357.8</td>
+                        <td style="color: #F87171; font-weight: bold;">-21.7</td>
+                        <td>Rs -542</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -703</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>19</td>
+                        <td>2026-08-17</td>
+                        <td>12:10</td>
+                        <td>12:45</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24271.55</td>
+                        <td>24314.2</td>
+                        <td style="color: #34D399; font-weight: bold;">+42.6</td>
+                        <td>Rs +1,066</td>
+                        <td>Rs 160</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +906</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>20</td>
+                        <td>2026-08-18</td>
+                        <td>09:30</td>
+                        <td>10:55</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24231.85</td>
+                        <td>24190.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+41.0</td>
+                        <td>Rs +1,026</td>
+                        <td>Rs 160</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +866</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>21</td>
+                        <td>2026-08-19</td>
+                        <td>09:25</td>
+                        <td>10:35</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24095.95</td>
+                        <td>24055.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+40.1</td>
+                        <td>Rs +1,004</td>
+                        <td>Rs 159</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +845</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>22</td>
+                        <td>2026-08-20</td>
+                        <td>09:25</td>
+                        <td>09:35</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>24190.0</td>
+                        <td>24210.4</td>
+                        <td style="color: #F87171; font-weight: bold;">-20.4</td>
+                        <td>Rs -510</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -670</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>23</td>
+                        <td>2026-08-24</td>
+                        <td>14:15</td>
+                        <td>15:10</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24155.0</td>
+                        <td>24181.35</td>
+                        <td style="color: #34D399; font-weight: bold;">+26.4</td>
+                        <td>Rs +659</td>
+                        <td>Rs 160</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +499</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>24</td>
+                        <td>2026-08-25</td>
+                        <td>09:40</td>
+                        <td>10:20</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24154.05</td>
+                        <td>24120.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+33.2</td>
+                        <td>Rs +831</td>
+                        <td>Rs 159</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +672</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>25</td>
+                        <td>2026-08-26</td>
+                        <td>10:25</td>
+                        <td>11:50</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>24305.4</td>
+                        <td>24285.45</td>
+                        <td style="color: #F87171; font-weight: bold;">-19.9</td>
+                        <td>Rs -499</td>
+                        <td>Rs 160</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -659</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>26</td>
+                        <td>2026-08-27</td>
+                        <td>11:10</td>
+                        <td>12:35</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24155.05</td>
+                        <td>24172.8</td>
+                        <td style="color: #F87171; font-weight: bold;">-17.8</td>
+                        <td>Rs -444</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -603</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>27</td>
+                        <td>2026-08-31</td>
+                        <td>12:00</td>
+                        <td>13:55</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>24076.65</td>
+                        <td>24050.3</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.4</td>
+                        <td>Rs -659</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -818</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>28</td>
+                        <td>2026-09-01</td>
+                        <td>09:40</td>
+                        <td>10:15</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>24027.55</td>
+                        <td>24042.8</td>
+                        <td style="color: #F87171; font-weight: bold;">-15.2</td>
+                        <td>Rs -381</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -540</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>29</td>
+                        <td>2026-09-04</td>
+                        <td>11:25</td>
+                        <td>11:35</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>23981.35</td>
+                        <td>23999.0</td>
+                        <td style="color: #F87171; font-weight: bold;">-17.6</td>
+                        <td>Rs -441</td>
+                        <td>Rs 159</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -600</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>30</td>
+                        <td>2026-09-07</td>
+                        <td>10:40</td>
+                        <td>10:50</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>23802.85</td>
+                        <td>23787.3</td>
+                        <td style="color: #F87171; font-weight: bold;">-15.6</td>
+                        <td>Rs -389</td>
+                        <td>Rs 158</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -546</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>31</td>
+                        <td>2026-09-08</td>
+                        <td>11:15</td>
+                        <td>11:45</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>23685.15</td>
+                        <td>23662.5</td>
+                        <td style="color: #F87171; font-weight: bold;">-22.6</td>
+                        <td>Rs -566</td>
+                        <td>Rs 157</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -723</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>32</td>
+                        <td>2026-09-09</td>
+                        <td>10:25</td>
+                        <td>10:35</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>23540.3</td>
+                        <td>23524.3</td>
+                        <td style="color: #F87171; font-weight: bold;">-16.0</td>
+                        <td>Rs -400</td>
+                        <td>Rs 156</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -556</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>33</td>
+                        <td>2026-09-11</td>
+                        <td>14:05</td>
+                        <td>15:10</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>23414.95</td>
+                        <td>23436.1</td>
+                        <td style="color: #F87171; font-weight: bold;">-21.1</td>
+                        <td>Rs -529</td>
+                        <td>Rs 156</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -685</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>34</td>
+                        <td>2026-09-15</td>
+                        <td>09:55</td>
+                        <td>10:25</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>23395.4</td>
+                        <td>23363.05</td>
+                        <td style="color: #F87171; font-weight: bold;">-32.4</td>
+                        <td>Rs -809</td>
+                        <td>Rs 156</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -965</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>35</td>
+                        <td>2026-09-16</td>
+                        <td>10:25</td>
+                        <td>10:30</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>23229.0</td>
+                        <td>23248.25</td>
+                        <td style="color: #F87171; font-weight: bold;">-19.2</td>
+                        <td>Rs -481</td>
+                        <td>Rs 155</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -636</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>36</td>
+                        <td>2026-09-21</td>
+                        <td>14:20</td>
+                        <td>15:10</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>23454.4</td>
+                        <td>23429.7</td>
+                        <td style="color: #34D399; font-weight: bold;">+24.7</td>
+                        <td>Rs +618</td>
+                        <td>Rs 156</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +461</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>37</td>
+                        <td>2026-09-23</td>
+                        <td>12:50</td>
+                        <td>15:10</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>R2 Resistance Reversal</td>
+                        <td>23443.7</td>
+                        <td>23432.95</td>
+                        <td style="color: #34D399; font-weight: bold;">+10.8</td>
+                        <td>Rs +269</td>
+                        <td>Rs 156</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +113</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>38</td>
+                        <td>2026-09-29</td>
+                        <td>12:15</td>
+                        <td>12:25</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>22728.55</td>
+                        <td>22680.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+47.8</td>
+                        <td>Rs +1,194</td>
+                        <td>Rs 153</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,041</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>39</td>
+                        <td>2026-09-30</td>
+                        <td>09:50</td>
+                        <td>10:20</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>Bullish Support Bounce (CPR/S1)</td>
+                        <td>22720.45</td>
+                        <td>22764.2</td>
+                        <td style="color: #34D399; font-weight: bold;">+43.8</td>
+                        <td>Rs +1,094</td>
+                        <td>Rs 153</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +941</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>40</td>
+                        <td>2026-10-01</td>
+                        <td>10:40</td>
+                        <td>12:10</td>
+                        <td><span class="pill-short">FUTURES SHORT</span></td>
+                        <td>S1 Breakdown Flush</td>
+                        <td>22562.35</td>
+                        <td>22520.8</td>
+                        <td style="color: #34D399; font-weight: bold;">+41.5</td>
+                        <td>Rs +1,039</td>
+                        <td>Rs 152</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +887</td>
+                        <td><span class="pill-win">TARGET HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>41</td>
+                        <td>2026-10-07</td>
+                        <td>11:20</td>
+                        <td>11:30</td>
+                        <td><span class="pill-long">FUTURES LONG</span></td>
+                        <td>S2 Sweep Reversal</td>
+                        <td>22684.8</td>
+                        <td>22664.75</td>
+                        <td style="color: #F87171; font-weight: bold;">-20.1</td>
+                        <td>Rs -501</td>
+                        <td>Rs 153</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -654</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const eqData = [150000.0, 150187.48, 149469.5, 150250.12, 149694.7, 148948.0, 148619.44, 149596.16, 150050.34, 149272.79, 148725.48, 148009.45, 147171.79, 148327.51, 149173.66, 148529.01, 149123.46, 148397.02, 147694.25, 148600.39, 149466.89, 150311.51, 149641.92, 150141.16, 150813.02, 150154.22, 149551.05, 148733.34, 148193.26, 147593.39, 147046.91, 146323.51, 145767.01, 145082.27, 144117.75, 143481.37, 143942.72, 144055.37, 145096.35, 146037.19, 146923.94, 146270.18];
+        const labels = ["Start", "T1: 2026-07-03", "T2: 2026-07-06", "T3: 2026-07-13", "T4: 2026-07-14", "T5: 2026-07-16", "T6: 2026-07-20", "T7: 2026-07-21", "T8: 2026-07-23", "T9: 2026-07-24", "T10: 2026-07-28", "T11: 2026-07-30", "T12: 2026-08-05", "T13: 2026-08-06", "T14: 2026-08-07", "T15: 2026-08-11", "T16: 2026-08-12", "T17: 2026-08-13", "T18: 2026-08-14", "T19: 2026-08-17", "T20: 2026-08-18", "T21: 2026-08-19", "T22: 2026-08-20", "T23: 2026-08-24", "T24: 2026-08-25", "T25: 2026-08-26", "T26: 2026-08-27", "T27: 2026-08-31", "T28: 2026-09-01", "T29: 2026-09-04", "T30: 2026-09-07", "T31: 2026-09-08", "T32: 2026-09-09", "T33: 2026-09-11", "T34: 2026-09-15", "T35: 2026-09-16", "T36: 2026-09-21", "T37: 2026-09-23", "T38: 2026-09-29", "T39: 2026-09-30", "T40: 2026-10-01", "T41: 2026-10-07"];
+        const ddData = [0.0, 0.0, -0.4780558272900048, 0.0, -0.3696635982719906, -0.8666349151667868, -1.0853102812829654, -0.4352475725144126, -0.1329649520413021, -0.6504686984609311, -1.0147346304947942, -1.4912933181018317, -2.048803688143469, -1.279606299149702, -0.7164453512582831, -1.1454965892872406, -0.7498563062711721, -1.2333434409237116, -1.7010768443978581, -1.0979891397091606, -0.5212841094569385, 0.0, -0.44546821464304126, -0.11333130776213067, 0.0, -0.43683231063205846, -0.8367778856228735, -1.3789790828404558, -1.737091399668265, -2.1348488346695635, -2.4972048169315793, -2.97687162554001, -3.3458715964974246, -3.799904013592461, -4.439450917434045, -4.861417137591963, -4.555508536331936, -4.480813393962931, -3.7905679496372287, -3.1667226079021478, -2.578742869813221, -3.012233293915868];
+        const dDates = ["2026-07-03", "2026-07-06", "2026-07-13", "2026-07-14", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-31", "2026-09-01", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-21", "2026-09-23", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-07"];
+        const dVals = [187.48, -717.98, 780.62, -555.42, -746.7, -328.56, 976.71, 454.19, -777.55, -547.32, -716.02, -837.67, 1155.72, 846.15, -644.65, 594.46, -726.44, -702.77, 906.14, 866.5, 844.63, -669.59, 499.24, 671.85, -658.79, -603.18, -817.71, -540.08, -599.87, -546.47, -723.4, -556.5, -684.74, -964.52, -636.37, 461.35, 112.64, 1040.98, 940.84, 886.75, -653.76];
+        const dCols = ["#10B981", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#EF4444", "#10B981", "#10B981", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#10B981", "#10B981", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#10B981", "#10B981", "#10B981", "#EF4444", "#10B981", "#10B981", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#EF4444", "#10B981", "#10B981", "#10B981", "#10B981", "#10B981", "#EF4444"];
+
+        // 1. Equity Curve
+        Plotly.newPlot('equityChart', [{
+            x: labels,
+            y: eqData,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#6366F1', width: 2.5 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(99, 102, 241, 0.05)'
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 60, r: 30, t: 10, b: 30 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: ',.0f', tickprefix: 'Rs ', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+
+        // 2. Daily PnL
+        Plotly.newPlot('dailyChart', [{
+            x: dDates,
+            y: dVals,
+            type: 'bar',
+            marker: { color: dCols }
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 50, r: 20, t: 10, b: 40 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', font: { family: 'Inter', color: '#94A3B8', size: 10 } },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: ',.0f', tickprefix: 'Rs ', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+
+        // 3. Drawdown Chart
+        Plotly.newPlot('ddChart', [{
+            x: labels,
+            y: ddData,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#EF4444', width: 1.8 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(239, 68, 68, 0.1)'
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 50, r: 20, t: 10, b: 30 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: '.1f', ticksuffix: '%', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+    </script>
+</body>
+</html>

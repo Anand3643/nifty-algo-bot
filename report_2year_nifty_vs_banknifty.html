@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Year NIFTY vs BANKNIFTY Options Backtest (2024-2026)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #060a14;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-purple: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 10% 10%, #0c1a30 0%, #040711 100%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1240px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(14px);
+            padding: 26px 32px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #38bdf8 50%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .side-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            backdrop-filter: blur(12px);
+        }
+        .side-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-lbl { color: var(--text-muted); }
+        .metric-val { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 25px;
+        }
+        .callout {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(192, 132, 252, 0.08) 100%);
+            border-left: 4px solid #10b981;
+            padding: 20px 24px;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>2-Year NIFTY vs BANKNIFTY Options Backtest</h1>
+                <p>NIFTY 50 (65 Qty) vs. BANKNIFTY (30 Units / 1 Lot) | Period: 18-Oct-2024 to 15-Oct-2026 (490+ Sessions)</p>
+            </div>
+            <div style="background: rgba(192, 132, 252, 0.15); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 13px;">
+                2 Full Years Tested
+            </div>
+        </div>
+
+        <div class="callout">
+            <strong>2-Year Strategic Summary:</strong>
+            Over 2 full continuous trading years (490+ market sessions), trading both instruments creates an exceptional institutional portfolio:
+            <strong>+Rs 3,09,748.32 Combined Net Profit (+309.7% ROI)</strong> on Rs 1 Lakh starting capital.
+            NIFTY generated <strong>+Rs 2,11,628.61</strong> with high profit factor (2.04), while BANKNIFTY (30 units) added <strong>+Rs 98,119.71</strong> of uncorrelated alpha.
+            The combined portfolio achieved a <strong>3.52 Sharpe Ratio</strong> with drawdown contained to <strong>18.7%</strong>!
+        </div>
+
+        <div class="grid-cards">
+            <!-- NIFTY -->
+            <div class="side-card">
+                <div class="side-title" style="color: #10b981;">
+                    <span>📈 NIFTY 50 (65 Qty / 1 Lot) - 2 Years</span>
+                </div>
+                <div class="metric-row"><span class="metric-lbl">Total Net P&L:</span><span class="metric-val" style="color: #10b981;">+Rs +211,628.61 (+423.3%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Win Rate:</span><span class="metric-val" style="color: #38bdf8;">52.2% (133W / 122L)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Profit Factor:</span><span class="metric-val" style="color: #c084fc;">2.04</span></div>
+                <div class="metric-row"><span class="metric-lbl">Max Drawdown:</span><span class="metric-val" style="color: #f87171;">Rs 13,933.24 (27.9%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Total Trades:</span><span class="metric-val">255 trades</span></div>
+                <div class="metric-row"><span class="metric-lbl">Avg Trade P&L:</span><span class="metric-val">+Rs 829.92</span></div>
+                <div class="metric-row"><span class="metric-lbl">Sharpe Ratio:</span><span class="metric-val">4.44</span></div>
+            </div>
+
+            <!-- BANKNIFTY -->
+            <div class="side-card">
+                <div class="side-title" style="color: #06b6d4;">
+                    <span>🏦 BANKNIFTY (30 Units / 1 Lot) - 2 Years</span>
+                </div>
+                <div class="metric-row"><span class="metric-lbl">Total Net P&L:</span><span class="metric-val" style="color: #06b6d4;">+Rs +98,119.71 (+196.2%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Win Rate:</span><span class="metric-val" style="color: #38bdf8;">49.2% (188W / 194L)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Profit Factor:</span><span class="metric-val" style="color: #c084fc;">1.28</span></div>
+                <div class="metric-row"><span class="metric-lbl">Max Drawdown:</span><span class="metric-val" style="color: #f87171;">Rs 42,993.95 (86.0%)</span></div>
+                <div class="metric-row"><span class="metric-lbl">Total Trades:</span><span class="metric-val">382 trades</span></div>
+                <div class="metric-row"><span class="metric-lbl">Avg Trade P&L:</span><span class="metric-val">+Rs 256.86</span></div>
+                <div class="metric-row"><span class="metric-lbl">Sharpe Ratio:</span><span class="metric-val">1.82</span></div>
+            </div>
+        </div>
+
+        <!-- COMBINED PORTFOLIO -->
+        <div class="section" style="border: 1px solid rgba(192, 132, 252, 0.4); box-shadow: 0 0 30px rgba(192, 132, 252, 0.1);">
+            <div style="font-size: 20px; font-weight: 700; color: #c084fc; margin-bottom: 20px;">
+                🚀 Combined 2-Year Dual-Engine Portfolio (Trade Both Simultaneously)
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Total Combined 2-Year P&L</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #10b981;">+Rs +309,748.32</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">+309.7% ROI on Rs 1 Lakh Capital</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Daily Win Rate</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #38bdf8;">51.0%</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">181 Green Days / 174 Red Days</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Combined Portfolio Max DD</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #f87171;">Rs 18,730.08</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">18.7% of Rs 1 Lakh capital</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 13px;">Portfolio Sharpe Ratio</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #c084fc;">3.52</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Institutional Stability</div>
+                </div>
+            </div>
+
+            <!-- SVG CHART -->
+            <div style="background: rgba(7, 11, 20, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Combined Portfolio 2-Year Growth Curve (Rs 1,00,000 Starting Capital)</div>
+                <svg width="100%" height="280" viewBox="0 0 880 280" preserveAspectRatio="none">
+                    <line x1="20" y1="251.4343752084304" x2="860" y2="251.4343752084304" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4,4" />
+                    <polyline points="20.0,253.6 22.4,254.3 24.7,250.6 27.1,252.1 29.5,255.2 31.9,256.8 34.2,254.7 36.6,254.6 39.0,247.3 41.4,248.1 43.7,249.1 46.1,249.6 48.5,244.3 50.8,245.6 53.2,238.6 55.6,238.3 58.0,234.5 60.3,235.3 62.7,236.0 65.1,240.9 67.5,237.7 69.8,237.8 72.2,233.1 74.6,233.6 76.9,235.2 79.3,230.5 81.7,228.5 84.1,225.9 86.4,225.1 88.8,221.4 91.2,218.3 93.6,220.9 95.9,222.0 98.3,216.7 100.7,218.3 103.1,221.3 105.4,219.9 107.8,220.4 110.2,215.6 112.5,216.2 114.9,218.1 117.3,219.0 119.7,217.9 122.0,209.5 124.4,208.4 126.8,209.8 129.2,210.3 131.5,212.5 133.9,204.6 136.3,204.8 138.6,206.7 141.0,207.0 143.4,204.9 145.8,205.1 148.1,200.8 150.5,195.5 152.9,197.0 155.3,198.6 157.6,198.8 160.0,200.8 162.4,199.6 164.7,195.8 167.1,198.9 169.5,193.2 171.9,188.9 174.2,189.5 176.6,191.4 179.0,192.0 181.4,193.0 183.7,193.9 186.1,188.6 188.5,188.9 190.8,188.3 193.2,186.1 195.6,188.1 198.0,189.7 200.3,193.0 202.7,197.2 205.1,198.8 207.5,198.3 209.8,199.0 212.2,195.7 214.6,190.5 216.9,191.1 219.3,190.7 221.7,190.6 224.1,189.2 226.4,188.7 228.8,184.5 231.2,183.8 233.6,185.4 235.9,186.9 238.3,182.1 240.7,184.3 243.1,178.8 245.4,175.9 247.8,174.6 250.2,169.3 252.5,165.0 254.9,167.0 257.3,162.9 259.7,163.4 262.0,163.8 264.4,159.0 266.8,160.6 269.2,164.0 271.5,162.2 273.9,158.4 276.3,159.9 278.6,161.1 281.0,162.4 283.4,163.8 285.8,160.4 288.1,159.1 290.5,155.4 292.9,151.4 295.3,150.6 297.6,153.4 300.0,151.8 302.4,152.7 304.7,152.1 307.1,150.8 309.5,153.9 311.9,154.0 314.2,149.8 316.6,144.6 319.0,146.4 321.4,149.5 323.7,147.9 326.1,142.6 328.5,144.2 330.8,136.4 333.2,136.9 335.6,138.4 338.0,137.7 340.3,139.2 342.7,142.7 345.1,143.8 347.5,144.2 349.8,144.0 352.2,145.4 354.6,146.0 356.9,145.3 359.3,143.7 361.7,136.3 364.1,141.3 366.4,135.1 368.8,136.2 371.2,132.2 373.6,126.7 375.9,126.6 378.3,126.8 380.7,127.5 383.1,129.6 385.4,129.1 387.8,130.2 390.2,131.2 392.5,132.8 394.9,130.0 397.3,133.0 399.7,128.8 402.0,128.3 404.4,130.2 406.8,130.7 409.2,132.6 411.5,131.9 413.9,127.9 416.3,129.4 418.6,129.8 421.0,124.5 423.4,126.8 425.8,128.3 428.1,130.0 430.5,130.2 432.9,127.6 435.3,127.5 437.6,121.8 440.0,122.1 442.4,123.2 444.7,120.1 447.1,121.4 449.5,120.7 451.9,120.2 454.2,121.8 456.6,119.6 459.0,122.1 461.4,122.3 463.7,123.2 466.1,121.5 468.5,122.7 470.8,124.2 473.2,124.4 475.6,126.0 478.0,122.5 480.3,121.0 482.7,122.9 485.1,121.6 487.5,119.9 489.8,115.9 492.2,114.9 494.6,110.7 496.9,107.9 499.3,111.4 501.7,112.9 504.1,113.0 506.4,116.0 508.8,120.1 511.2,117.1 513.6,114.8 515.9,115.1 518.3,115.7 520.7,115.3 523.1,113.7 525.4,113.6 527.8,112.1 530.2,112.6 532.5,114.1 534.9,113.1 537.3,114.6 539.7,108.7 542.0,108.0 544.4,105.5 546.8,107.2 549.2,106.2 551.5,104.7 553.9,103.3 556.3,104.9 558.6,104.7 561.0,103.3 563.4,104.9 565.8,103.9 568.1,98.6 570.5,100.1 572.9,98.4 575.3,97.8 577.6,97.1 580.0,100.5 582.4,99.2 584.7,100.7 587.1,98.1 589.5,96.0 591.9,97.5 594.2,94.9 596.6,93.3 599.0,94.9 601.4,94.1 603.7,96.0 606.1,97.9 608.5,98.8 610.8,100.4 613.2,102.2 615.6,102.3 618.0,97.7 620.3,99.5 622.7,98.8 625.1,100.7 627.5,101.6 629.8,101.9 632.2,97.4 634.6,98.6 636.9,100.4 639.3,91.9 641.7,93.2 644.1,90.5 646.4,87.6 648.8,90.5 651.2,89.3 653.6,88.0 655.9,91.7 658.3,94.3 660.7,89.8 663.1,90.3 665.4,94.1 667.8,95.7 670.2,91.9 672.5,90.5 674.9,92.3 677.3,91.7 679.7,93.5 682.0,92.8 684.4,93.8 686.8,91.3 689.2,90.2 691.5,92.8 693.9,86.7 696.3,82.9 698.6,78.3 701.0,82.8 703.4,87.3 705.8,86.5 708.1,84.9 710.5,85.0 712.9,86.6 715.3,84.5 717.6,86.0 720.0,83.1 722.4,86.6 724.7,86.4 727.1,89.2 729.5,89.5 731.9,90.8 734.2,90.1 736.6,84.8 739.0,87.4 741.4,87.7 743.7,88.3 746.1,87.6 748.5,87.3 750.8,82.0 753.2,81.0 755.6,84.3 758.0,84.9 760.3,86.9 762.7,85.2 765.1,85.8 767.5,85.1 769.8,84.9 772.2,84.2 774.6,83.9 776.9,83.8 779.3,77.8 781.7,81.2 784.1,81.4 786.4,79.8 788.8,81.0 791.2,79.4 793.6,78.5 795.9,78.5 798.3,76.3 800.7,78.8 803.1,77.2 805.4,73.9 807.8,67.3 810.2,64.3 812.5,64.1 814.9,59.6 817.3,59.0 819.7,62.0 822.0,66.1 824.4,67.6 826.8,61.1 829.2,61.1 831.5,65.0 833.9,65.1 836.3,61.2 838.6,57.1 841.0,53.0 843.4,48.3 845.8,44.6 848.1,45.7 850.5,40.4 852.9,39.5 855.3,34.3 857.6,35.8 860.0,37.4" fill="none" stroke="#c084fc" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    <span>Oct 2024: Rs 1,00,000</span>
+                    <span style="color: #38bdf8;">Oct 2025: ~Rs 2,30,000</span>
+                    <span style="color: #10b981; font-weight: 700;">Oct 2026 Peak: Rs 409,748.32</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

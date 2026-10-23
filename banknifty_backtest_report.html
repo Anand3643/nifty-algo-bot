@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANKNIFTY Strategy Backtest Report | 1 Lot (15 Qty)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #070d18;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 10% 20%, #0c1830 0%, #050811 100%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        .container { max-width: 1240px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(14px);
+            padding: 24px 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 16px;
+            padding: 22px;
+        }
+        .card-lbl {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+        .card-val { font-size: 30px; font-weight: 800; }
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 25px;
+        }
+        .sec-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #f1f5f9; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-card);
+        }
+        td { padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #cbd5e1; }
+        .callout {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border-left: 4px solid var(--accent-cyan);
+            padding: 20px 24px;
+            border-radius: 0 16px 16px 0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .callout strong { color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>BANKNIFTY Institutional Strategy Backtest</h1>
+                <p>Contract: <strong>1 Lot = 15 Qty (ATM Options)</strong> | Period: 03-Jul-2026 to 15-Oct-2026 (7,678 5M Candles)</p>
+            </div>
+            <div style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 13px;">
+                Wednesday Expiries
+            </div>
+        </div>
+
+        <div class="grid-cards">
+            <div class="card">
+                <div class="card-lbl">Total Net P&L</div>
+                <div class="card-val" style="color: #10b981;">+Rs 15,708.79</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">+31.4% ROI on Rs 50,000 Base</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Win Rate</div>
+                <div class="card-val" style="color: #38bdf8;">64.9%</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">48 Wins / 26 Losses (74 Trades)</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Profit Factor</div>
+                <div class="card-val" style="color: #a78bfa;">1.59</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">Gross Win: Rs 42,288 | Loss: Rs 26,580</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Max Drawdown</div>
+                <div class="card-val" style="color: #f87171;">Rs 5,282.11</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">Only 10.6% of starting capital</div>
+            </div>
+        </div>
+
+        <div class="callout">
+            <strong>Key Quantitative Finding for BANKNIFTY:</strong>
+            Our strategy translated seamlessly to BANKNIFTY with a stellar <strong>64.9% Win Rate</strong> and <strong>+Rs 15,708.79 Net Profit (+31.4% ROI on 1 lot)</strong>.
+            The top-performing setup is <strong>S1 Support Breakdown (66.7% WR, +Rs 8,135 profit)</strong> and <strong>R2 Exhaustion Reversal (66.7% WR, +Rs 2,198 profit)</strong>.
+            In contrast, applying Arjun's Telegram levels to BankNifty resulted in a <strong>-Rs 1,334.91 net loss</strong> with a much higher drawdown (Rs 11,821).
+        </div>
+
+        <!-- EQUITY CURVE -->
+        <div class="section">
+            <div class="sec-title">BANKNIFTY Cumulative Equity Curve (1 Lot = 15 Qty)</div>
+            <div style="background: rgba(7, 11, 20, 0.85); border-radius: 14px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                <svg width="100%" height="240" viewBox="0 0 800 240" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="bnGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <polygon points="20,220 20.0,210.2 30.3,207.0 40.5,193.7 50.8,204.9 61.1,201.3 71.4,197.8 81.6,194.6 91.9,178.4 102.2,189.6 112.4,185.9 122.7,182.2 133.0,193.7 143.2,196.1 153.5,192.5 163.8,170.3 174.1,181.7 184.3,180.7 194.6,183.1 204.9,167.7 215.1,164.5 225.4,175.9 235.7,159.3 245.9,170.8 256.2,176.6 266.5,173.2 276.8,184.1 287.0,195.0 297.3,191.9 307.6,182.0 317.8,184.2 328.1,181.1 338.4,164.4 348.6,149.5 358.9,160.6 369.2,157.5 379.5,153.6 389.7,150.4 400.0,136.6 410.3,133.2 420.5,144.6 430.8,138.9 441.1,124.6 451.4,108.2 461.6,94.3 471.9,92.5 482.2,88.9 492.4,85.2 502.7,96.2 513.0,107.7 523.2,91.8 533.5,103.3 543.8,114.7 554.1,126.0 564.3,137.2 574.6,120.5 584.9,107.2 595.1,92.2 605.4,103.7 615.7,115.2 625.9,111.7 636.2,122.6 646.5,134.1 656.8,131.0 667.0,127.5 677.3,111.7 687.6,108.1 697.8,101.8 708.1,78.1 718.4,74.9 728.6,61.3 738.9,57.7 749.2,37.1 759.5,33.4 769.7,44.3 780.0,55.8 780,220" fill="url(#bnGrad)" />
+                    <polyline points="20.0,210.2 30.3,207.0 40.5,193.7 50.8,204.9 61.1,201.3 71.4,197.8 81.6,194.6 91.9,178.4 102.2,189.6 112.4,185.9 122.7,182.2 133.0,193.7 143.2,196.1 153.5,192.5 163.8,170.3 174.1,181.7 184.3,180.7 194.6,183.1 204.9,167.7 215.1,164.5 225.4,175.9 235.7,159.3 245.9,170.8 256.2,176.6 266.5,173.2 276.8,184.1 287.0,195.0 297.3,191.9 307.6,182.0 317.8,184.2 328.1,181.1 338.4,164.4 348.6,149.5 358.9,160.6 369.2,157.5 379.5,153.6 389.7,150.4 400.0,136.6 410.3,133.2 420.5,144.6 430.8,138.9 441.1,124.6 451.4,108.2 461.6,94.3 471.9,92.5 482.2,88.9 492.4,85.2 502.7,96.2 513.0,107.7 523.2,91.8 533.5,103.3 543.8,114.7 554.1,126.0 564.3,137.2 574.6,120.5 584.9,107.2 595.1,92.2 605.4,103.7 615.7,115.2 625.9,111.7 636.2,122.6 646.5,134.1 656.8,131.0 667.0,127.5 677.3,111.7 687.6,108.1 697.8,101.8 708.1,78.1 718.4,74.9 728.6,61.3 738.9,57.7 749.2,37.1 759.5,33.4 769.7,44.3 780.0,55.8" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    <span>03-Jul-2026 (Rs 50,000)</span>
+                    <span style="color: #10b981; font-weight: 700;">Peak: Rs 67,989</span>
+                    <span>15-Oct-2026 (Rs 65,709)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAYBOOK PERFORMANCE -->
+        <div class="section">
+            <div class="sec-title">Playbook Breakdown (Where BankNifty Profits Came From)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Playbook</th>
+                        <th>Trades</th>
+                        <th>Wins</th>
+                        <th>Win Rate</th>
+                        <th>Net P&L</th>
+                        <th>Avg Trade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-weight: 600; color: #f8fafc;">R1 Resistance Breakout</td>
+            <td>14</td>
+            <td>9</td>
+            <td style="color: #10b981; font-weight: 600;">64.3%</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 2,052.39</td>
+            <td style="font-family: monospace;">Rs 146.60</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #f8fafc;">R1 Resistance Reversal</td>
+            <td>27</td>
+            <td>17</td>
+            <td style="color: #10b981; font-weight: 600;">63.0%</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 3,322.79</td>
+            <td style="font-family: monospace;">Rs 123.07</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #f8fafc;">R2 Exhaustion Reversal</td>
+            <td>15</td>
+            <td>10</td>
+            <td style="color: #10b981; font-weight: 600;">66.7%</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 2,198.60</td>
+            <td style="font-family: monospace;">Rs 146.57</td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #f8fafc;">S1 Support Breakdown</td>
+            <td>18</td>
+            <td>12</td>
+            <td style="color: #10b981; font-weight: 600;">66.7%</td>
+            <td style="font-weight: 700; color: #10b981;">Rs 8,135.01</td>
+            <td style="font-family: monospace;">Rs 451.94</td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TRADE LOG -->
+        <div class="section">
+            <div class="sec-title">Day-by-Day Trade Log (Recent 25 Trades)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Contract</th>
+                        <th>Playbook</th>
+                        <th>Entry Prem</th>
+                        <th>Exit Prem</th>
+                        <th>Points</th>
+                        <th>Net P&L</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-03</td>
+            <td>09:25 - 11:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 410.0</td>
+            <td style="font-family: monospace;">Rs 435.77</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.77 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 327.34</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-03</td>
+            <td>11:45 - 13:05</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 428.36</td>
+            <td style="font-family: monospace;">Rs 522.52</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+94.16 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,351.43</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+98.9 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-06</td>
+            <td>09:25 - 09:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 265.48</td>
+            <td style="font-family: monospace;">Rs 193.19</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-72.29 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,137.69</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-07</td>
+            <td>09:25 - 11:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 226.39</td>
+            <td style="font-family: monospace;">Rs 253.98</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.6 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 359.87</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-07</td>
+            <td>11:15 - 14:35</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 224.53</td>
+            <td style="font-family: monospace;">Rs 252.14</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.62 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 360.20</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-09</td>
+            <td>10:40 - 10:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 438.1</td>
+            <td style="font-family: monospace;">Rs 463.59</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.49 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 322.36</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-09</td>
+            <td>10:50 - 11:30</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57200 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 496.05</td>
+            <td style="font-family: monospace;">Rs 610.16</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+114.12 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,648.44</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+119.7 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-13</td>
+            <td>11:40 - 12:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 269.74</td>
+            <td style="font-family: monospace;">Rs 197.41</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-72.33 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,138.44</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-15</td>
+            <td>12:55 - 13:05</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 120.06</td>
+            <td style="font-family: monospace;">Rs 148.71</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+28.66 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 378.72</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-15</td>
+            <td>13:10 - 13:15</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 142.54</td>
+            <td style="font-family: monospace;">Rs 170.97</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+28.43 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 374.73</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-16</td>
+            <td>10:30 - 10:55</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 454.39</td>
+            <td style="font-family: monospace;">Rs 380.22</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-74.17 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,171.16</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-16</td>
+            <td>13:10 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 456.95</td>
+            <td style="font-family: monospace;">Rs 444.89</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-12.06 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -240.72</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-21</td>
+            <td>09:30 - 12:35</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 58000 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 202.41</td>
+            <td style="font-family: monospace;">Rs 230.24</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.84 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 364.12</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-23</td>
+            <td>09:25 - 12:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 430.84</td>
+            <td style="font-family: monospace;">Rs 585.29</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+154.45 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 2,254.46</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+159.5 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-24</td>
+            <td>12:30 - 12:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 402.35</td>
+            <td style="font-family: monospace;">Rs 328.7</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.65 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,161.94</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-24</td>
+            <td>12:55 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 397.97</td>
+            <td style="font-family: monospace;">Rs 409.24</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+11.27 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 110.49</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-27</td>
+            <td>10:00 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 299.5</td>
+            <td style="font-family: monospace;">Rs 286.53</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-12.97 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -249.93</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-28</td>
+            <td>12:15 - 15:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56900 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 199.22</td>
+            <td style="font-family: monospace;">Rs 307.5</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+108.28 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,569.42</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+110.8 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-31</td>
+            <td>09:25 - 09:35</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 401.83</td>
+            <td style="font-family: monospace;">Rs 427.68</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.85 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 328.78</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-07-31</td>
+            <td>09:45 - 13:05</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57200 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 416.63</td>
+            <td style="font-family: monospace;">Rs 342.84</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.8 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,164.47</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-05</td>
+            <td>11:45 - 13:40</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 141.02</td>
+            <td style="font-family: monospace;">Rs 257.14</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+116.12 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,688.40</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+118.1 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-06</td>
+            <td>09:25 - 11:55</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 449.43</td>
+            <td style="font-family: monospace;">Rs 375.3</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-74.12 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,170.28</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-06</td>
+            <td>12:00 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57900 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 426.06</td>
+            <td style="font-family: monospace;">Rs 390.65</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-35.41 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -589.72</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-10</td>
+            <td>09:25 - 09:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 275.69</td>
+            <td style="font-family: monospace;">Rs 302.8</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.11 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 351.14</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-12</td>
+            <td>09:25 - 11:30</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57700 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 139.34</td>
+            <td style="font-family: monospace;">Rs 68.31</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-71.04 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,115.34</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-12</td>
+            <td>11:35 - 14:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 116.79</td>
+            <td style="font-family: monospace;">Rs 45.98</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-70.81 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,111.34</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-14</td>
+            <td>10:15 - 13:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 432.35</td>
+            <td style="font-family: monospace;">Rs 457.9</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.55 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 323.38</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-17</td>
+            <td>12:55 - 15:10</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 296.06</td>
+            <td style="font-family: monospace;">Rs 367.04</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+70.97 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,007.73</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-18</td>
+            <td>10:10 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 218.18</td>
+            <td style="font-family: monospace;">Rs 206.56</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-11.61 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -227.32</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-21</td>
+            <td>09:25 - 10:05</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 465.37</td>
+            <td style="font-family: monospace;">Rs 490.58</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.22 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 317.53</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-24</td>
+            <td>09:25 - 10:55</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 286.26</td>
+            <td style="font-family: monospace;">Rs 403.46</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+117.2 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,700.52</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+120.7 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-25</td>
+            <td>09:30 - 10:20</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 211.87</td>
+            <td style="font-family: monospace;">Rs 316.2</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+104.33 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,509.79</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+107.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-25</td>
+            <td>13:10 - 14:55</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 220.59</td>
+            <td style="font-family: monospace;">Rs 148.74</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-71.84 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,129.73</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-27</td>
+            <td>09:25 - 13:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 452.61</td>
+            <td style="font-family: monospace;">Rs 477.96</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.35 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 319.79</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-27</td>
+            <td>13:45 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 423.93</td>
+            <td style="font-family: monospace;">Rs 454.38</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+30.45 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 397.01</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-28</td>
+            <td>10:15 - 14:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 403.19</td>
+            <td style="font-family: monospace;">Rs 429.02</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.84 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 328.54</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-31</td>
+            <td>09:25 - 10:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 272.11</td>
+            <td style="font-family: monospace;">Rs 369.16</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+97.05 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,399.09</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+100.3 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-08-31</td>
+            <td>12:05 - 14:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 284.47</td>
+            <td style="font-family: monospace;">Rs 311.48</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.02 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 349.58</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-04</td>
+            <td>09:25 - 11:05</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 433.92</td>
+            <td style="font-family: monospace;">Rs 359.95</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.97 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,167.54</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-04</td>
+            <td>11:10 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 393.84</td>
+            <td style="font-family: monospace;">Rs 436.99</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+43.15 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 588.23</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-08</td>
+            <td>10:20 - 13:25</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 57000 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 243.85</td>
+            <td style="font-family: monospace;">Rs 344.23</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+100.38 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,449.71</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+103.3 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-09</td>
+            <td>13:00 - 14:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 140.63</td>
+            <td style="font-family: monospace;">Rs 255.42</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+114.79 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,668.49</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+116.8 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-10</td>
+            <td>09:30 - 15:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 441.98</td>
+            <td style="font-family: monospace;">Rs 540.58</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+98.6 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,417.58</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+103.5 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-11</td>
+            <td>14:00 - 15:10</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 452.84</td>
+            <td style="font-family: monospace;">Rs 469.03</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+16.19 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 182.61</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-15</td>
+            <td>10:05 - 12:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 224.29</td>
+            <td style="font-family: monospace;">Rs 251.9</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.62 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 360.25</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-16</td>
+            <td>09:25 - 09:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56000 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 133.64</td>
+            <td style="font-family: monospace;">Rs 162.17</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+28.52 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 376.31</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-16</td>
+            <td>09:55 - 10:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56000 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 109.4</td>
+            <td style="font-family: monospace;">Rs 38.67</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-70.74 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,110.03</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-17</td>
+            <td>09:30 - 09:40</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56500 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 502.39</td>
+            <td style="font-family: monospace;">Rs 427.74</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-74.65 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,179.67</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-17</td>
+            <td>09:55 - 11:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 432.64</td>
+            <td style="font-family: monospace;">Rs 544.63</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+111.99 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,618.39</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+116.9 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-18</td>
+            <td>09:30 - 12:40</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56200 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 423.23</td>
+            <td style="font-family: monospace;">Rs 349.36</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.86 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,165.64</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-18</td>
+            <td>13:15 - 14:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 398.76</td>
+            <td style="font-family: monospace;">Rs 325.15</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.62 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,161.31</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-21</td>
+            <td>09:25 - 10:05</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56500 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 302.56</td>
+            <td style="font-family: monospace;">Rs 229.89</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-72.66 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,144.26</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-21</td>
+            <td>10:45 - 13:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 276.23</td>
+            <td style="font-family: monospace;">Rs 203.84</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-72.4 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,139.59</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-22</td>
+            <td>09:30 - 10:40</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56600 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 224.02</td>
+            <td style="font-family: monospace;">Rs 340.57</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+116.54 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,692.47</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+119.4 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-22</td>
+            <td>11:00 - 14:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56300 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 202.56</td>
+            <td style="font-family: monospace;">Rs 296.51</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+93.95 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,354.62</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+96.4 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-23</td>
+            <td>09:30 - 10:55</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 56400 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 128.89</td>
+            <td style="font-family: monospace;">Rs 234.37</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+105.48 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,529.41</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+107.3 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-25</td>
+            <td>09:25 - 09:40</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 451.59</td>
+            <td style="font-family: monospace;">Rs 377.44</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-74.14 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,170.67</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-25</td>
+            <td>10:05 - 10:45</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55600 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 460.62</td>
+            <td style="font-family: monospace;">Rs 386.39</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-74.23 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,172.27</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-29</td>
+            <td>12:25 - 12:30</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54200 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 219.0</td>
+            <td style="font-family: monospace;">Rs 246.67</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.67 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 361.18</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-09-30</td>
+            <td>09:30 - 09:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 132.31</td>
+            <td style="font-family: monospace;">Rs 61.34</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-70.97 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,114.09</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-01</td>
+            <td>09:30 - 09:50</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 427.3</td>
+            <td style="font-family: monospace;">Rs 353.39</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.9 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,166.36</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-01</td>
+            <td>09:55 - 10:30</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54900 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 501.09</td>
+            <td style="font-family: monospace;">Rs 525.96</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+24.86 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 311.19</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-05</td>
+            <td>09:55 - 10:25</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54900 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 256.64</td>
+            <td style="font-family: monospace;">Rs 283.93</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.3 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 354.51</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-05</td>
+            <td>10:50 - 12:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54700 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 288.41</td>
+            <td style="font-family: monospace;">Rs 399.68</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+111.27 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,611.60</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+114.7 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-06</td>
+            <td>09:30 - 13:45</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55000 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 224.34</td>
+            <td style="font-family: monospace;">Rs 251.95</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.62 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 360.24</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-06</td>
+            <td>13:50 - 15:10</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 214.53</td>
+            <td style="font-family: monospace;">Rs 261.14</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+46.61 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 645.05</td>
+            <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD 15:10 EXIT</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-07</td>
+            <td>10:15 - 13:05</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55100 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 106.31</td>
+            <td style="font-family: monospace;">Rs 270.92</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+164.61 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 2,415.87</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+166.5 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-08</td>
+            <td>10:35 - 12:55</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 54800 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 413.39</td>
+            <td style="font-family: monospace;">Rs 439.12</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+25.74 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 326.74</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-12</td>
+            <td>09:50 - 11:00</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55000 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 264.79</td>
+            <td style="font-family: monospace;">Rs 360.37</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+95.58 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 1,377.28</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+98.7 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-13</td>
+            <td>09:35 - 11:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55200 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R2 Exhaustion Reversal</td>
+            <td style="font-family: monospace;">Rs 204.41</td>
+            <td style="font-family: monospace;">Rs 232.22</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+27.82 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 363.77</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-13</td>
+            <td>11:50 - 14:35</td>
+            <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55100 CE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Breakout</td>
+            <td style="font-family: monospace;">Rs 233.14</td>
+            <td style="font-family: monospace;">Rs 377.09</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+143.95 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 2,102.72</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+147.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-14</td>
+            <td>09:35 - 11:25</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55500 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 127.98</td>
+            <td style="font-family: monospace;">Rs 156.55</td>
+            <td style="font-family: monospace; color: #10b981; font-weight: 600;">+28.58 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #10b981;">Rs 377.31</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILING STOP HIT (+30.0 pts)</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-14</td>
+            <td>13:10 - 13:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55200 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">S1 Support Breakdown</td>
+            <td style="font-family: monospace;">Rs 136.07</td>
+            <td style="font-family: monospace;">Rs 65.06</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-71.0 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,114.76</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-family: monospace; color: #94a3b8;">2026-10-15</td>
+            <td>09:25 - 09:45</td>
+            <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">BANKNIFTY 55400 PE</span></td>
+            <td style="font-size: 13px; color: #cbd5e1;">R1 Resistance Reversal</td>
+            <td style="font-family: monospace;">Rs 421.45</td>
+            <td style="font-family: monospace;">Rs 347.6</td>
+            <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-73.84 pts</td>
+            <td style="font-family: monospace; font-weight: 700; color: #ef4444;">Rs -1,165.33</td>
+            <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

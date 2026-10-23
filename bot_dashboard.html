@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="5">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Algo Live Monitor | Angel One SmartAPI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --surface: #111827;
+            --surface-hover: #1f2937;
+            --border: #374151;
+            --primary: #00f2fe;
+            --accent: #4facfe;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 24px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .status-badge.live {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        .status-badge.flat {
+            background: rgba(0, 242, 254, 0.15);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 12px;
+        }
+        .kpi-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .kpi-val { font-size: 22px; font-weight: 700; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+        .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .pnl-green { color: var(--success); }
+        .pnl-red { color: var(--danger); }
+        .pos-section { margin-bottom: 20px; }
+        .pos-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .pos-card.active { border-color: var(--primary); }
+        .pos-card.empty { text-align: center; padding: 30px; }
+        .pos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .pos-inst { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .pos-type {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+        .pos-type.ce { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .pos-type.pe { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .pos-pnl { font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .pos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            font-size: 13px;
+        }
+        .pos-grid .lbl { color: var(--text-muted); display: block; font-size: 11px; margin-bottom: 2px; }
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .level-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .level-name { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .level-val { font-size: 16px; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+        .table-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .table-box h3 { font-size: 15px; margin-bottom: 14px; color: #e5e7eb; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #1e293b; color: #94a3b8; padding: 10px 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; }
+        tr:hover td { background: var(--surface-hover); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>⚡ NIFTY 50 OPTIONS ALGO BOT — LIVE MONITOR</h1>
+            <p>Underlying: NIFTY 50 (Spot: <strong>22,425.55</strong>) | Angel One SmartAPI | Auto-refreshing every 5s</p>
+        </div>
+        <div>
+            <span class="status-badge flat">FLAT (MONITORING)</span>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-lbl">Daily P&L (Today)</div>
+            <div class="kpi-val pnl-green">Rs +0.00</div>
+            <div class="kpi-sub">0 Trades | 0W / 0L (0% WR)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-lbl">Weekly P&L (W43 (19-Oct to 23-Oct))</div>
+            <div class="kpi-val pnl-green">Rs +0.00</div>
+            <div class="kpi-sub">0 Trades | 0W / 0L (0% WR)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-lbl">Current Capital</div>
+            <div class="kpi-val pnl-green">Rs 50,000.00</div>
+            <div class="kpi-sub">Started: Rs 50,000.00 (+0.00% ROI)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-lbl">Last Activity</div>
+            <div class="kpi-val" style="font-size: 14px; color: var(--primary);">12:04:35 IST</div>
+            <div class="kpi-sub">Bot Initialized</div>
+        </div>
+    </div>
+
+    <div class="pos-section">
+        
+            <div class="pos-card empty">
+                <div style="font-size: 16px; font-weight: 600; color: #9ca3af;">No Active Position</div>
+                <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">Engine is scanning 5-minute candles for Institutional S&R and Gap Polarity signals.</div>
+            </div>
+            
+    </div>
+
+    <div class="levels-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;">
+        <div class="level-box" style="border-top: 3px solid #dc2626;">
+            <div class="level-name">Resistance R4</div>
+            <div class="level-val">22995</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #e11d48;">
+            <div class="level-name">Resistance R3</div>
+            <div class="level-val">22885</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #ef4444;">
+            <div class="level-name">Resistance R2</div>
+            <div class="level-val">22805</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #f97316;">
+            <div class="level-name">Resistance R1</div>
+            <div class="level-val">22740</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #00f2fe;">
+            <div class="level-name">Pivot Point</div>
+            <div class="level-val">22675</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #22c55e;">
+            <div class="level-name">Support S1</div>
+            <div class="level-val">22620</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #10b981;">
+            <div class="level-name">Support S2</div>
+            <div class="level-val">22560</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #059669;">
+            <div class="level-name">Support S3</div>
+            <div class="level-val">22480</div>
+        </div>
+        <div class="level-box" style="border-top: 3px solid #047857;">
+            <div class="level-name">Support S4</div>
+            <div class="level-val">22385</div>
+        </div>
+    </div>
+
+    <div class="table-box">
+        <h3>Closed Trades Ledger (Fresh Session)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Contract</th>
+                    <th>Playbook</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>Pts</th>
+                    <th>Net P&L</th>
+                    <th>Exit Trigger</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="9" style="text-align: center; color: #6b7280; padding: 20px;">Fresh Start — No closed trades yet.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Levels Backtest Report | @FlyingcallsArjun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.7);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 10% 20%, #0d1527 0%, #060911 100%);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        .title-block h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        .title-block p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .badge-tg {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(14, 165, 233, 0.15);
+            color: #38bdf8;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 22px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+        .card-lbl {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .card-val {
+            font-size: 30px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+        }
+        .card-sub {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .sec-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #f1f5f9;
+        }
+        .chart-box {
+            background: rgba(10, 15, 26, 0.8);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.6px;
+            border-bottom: 1px solid var(--border-card);
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .insight-callout {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: 0 14px 14px 0;
+            padding: 18px 22px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+        .insight-callout strong {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="title-block">
+                <h1>Telegram Intraday Levels Backtest Report</h1>
+                <p>Channel: <strong>@FlyingcallsArjun</strong> (SEBI Reg. RA Arjun L) | Period: 03-Jul-2026 to 15-Oct-2026 (68 Sessions)</p>
+            </div>
+            <div class="badge-tg">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.18 3.35-1.38 3.73-1.39.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .36z"/></svg>
+                638 Messages Scraped
+            </div>
+        </div>
+
+        <!-- CORE STATS CARDS -->
+        <div class="grid-cards">
+            <div class="card">
+                <div class="card-lbl">Net P&L (Optimized)</div>
+                <div class="card-val" style="color: #10b981;">+Rs 8,960.65</div>
+                <div class="card-sub">+17.9% ROI on Rs 50,000 Base</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Win Rate</div>
+                <div class="card-val" style="color: #38bdf8;">55.2%</div>
+                <div class="card-sub">16 Wins / 13 Losses (29 Trades)</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Profit Factor</div>
+                <div class="card-val" style="color: #a78bfa;">1.49</div>
+                <div class="card-sub">Gross Win: Rs 27,121 | Loss: Rs 18,160</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Max Drawdown</div>
+                <div class="card-val" style="color: #f87171;">Rs 4,524.44</div>
+                <div class="card-sub">Only 9.0% of starting equity</div>
+            </div>
+        </div>
+
+        <!-- KEY QUANTITATIVE INSIGHT -->
+        <div class="insight-callout">
+            <strong>Key Quantitative Discovery:</strong>
+            Historical backtesting across all 68 trading sessions reveals that trading <em>mean-reversion bounces</em> at Arjun's S1/S2 or R1/R2 produces a negative expectancy (-Rs 11,597 P&L). 
+            However, trading <strong>BREAKOUTS</strong> with 5-minute candle closes beyond S1 or R1 generates robust positive alpha (<strong>+Rs 13,931 P&L, 54.5% Win Rate</strong>). 
+            When filtered with <strong>EMA 9/21 trend alignment</strong> and a <strong>trailing stop loss</strong>, Max Drawdown collapses by 74% to just <strong>Rs 4,524</strong> while maintaining a <strong>1.49 Profit Factor</strong>!
+        </div>
+
+        <!-- EQUITY CURVE -->
+        <div class="section">
+            <div class="sec-title">
+                <span>Cumulative Equity Curve (1 Lot NIFTY ATM Options)</span>
+            </div>
+            <div class="chart-box">
+                <svg width="100%" height="240" viewBox="0 0 800 240" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Baseline Rs 50k line -->
+                    <line x1="20" y1="152.8004195448306" x2="780" y2="152.8004195448306" stroke="rgba(255,255,255,0.15)" stroke-dasharray="4,4" />
+                    <!-- Area fill -->
+                    <polygon points="20,220 20.0,152.8 46.2,178.0 72.4,196.3 98.6,200.2 124.8,187.4 151.0,184.0 177.2,183.1 203.4,193.4 229.7,191.6 255.9,210.6 282.1,198.1 308.3,202.8 334.5,178.9 360.7,162.4 386.9,157.1 413.1,158.4 439.3,151.8 465.5,177.1 491.7,195.1 517.9,199.5 544.1,130.1 570.3,117.3 596.6,113.7 622.8,104.7 649.0,92.3 675.2,79.8 701.4,90.5 727.6,115.6 753.8,32.9 780.0,58.3 780,220" fill="url(#eqGrad)" />
+                    <!-- Line -->
+                    <polyline points="20.0,152.8 46.2,178.0 72.4,196.3 98.6,200.2 124.8,187.4 151.0,184.0 177.2,183.1 203.4,193.4 229.7,191.6 255.9,210.6 282.1,198.1 308.3,202.8 334.5,178.9 360.7,162.4 386.9,157.1 413.1,158.4 439.3,151.8 465.5,177.1 491.7,195.1 517.9,199.5 544.1,130.1 570.3,117.3 596.6,113.7 622.8,104.7 649.0,92.3 675.2,79.8 701.4,90.5 727.6,115.6 753.8,32.9 780.0,58.3" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                    <span>03-Jul-2026 (Rs 50,000)</span>
+                    <span>Rs 61,361 Peak</span>
+                    <span>09-Oct-2026 (Rs 58,961)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STRATEGY PLAYBOOK COMPARISON -->
+        <div class="section">
+            <div class="sec-title">Strategy Playbook Comparison (Bounce vs Breakout)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Execution Mode</th>
+                        <th>Total Trades</th>
+                        <th>Win Rate</th>
+                        <th>Net P&L</th>
+                        <th>Profit Factor</th>
+                        <th>Max Drawdown</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">BOUNCE (S&R Mean Reversion)</td>
+                <td>66</td>
+                <td style="color: #94a3b8;">39.4%</td>
+                <td style="font-weight: 700; color: #ef4444;">Rs -11,597.48</td>
+                <td>0.83</td>
+                <td style="color: #f87171;">Rs 17,574.89</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">BOUNCE (Tight 30pt SL, 1:3 RR)</td>
+                <td>74</td>
+                <td style="color: #94a3b8;">40.5%</td>
+                <td style="font-weight: 700; color: #ef4444;">Rs -3,205.99</td>
+                <td>0.95</td>
+                <td style="color: #f87171;">Rs 13,910.19</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">BOUNCE (40pt SL, 1:2.5 RR)</td>
+                <td>60</td>
+                <td style="color: #94a3b8;">38.3%</td>
+                <td style="font-weight: 700; color: #ef4444;">Rs -6,476.95</td>
+                <td>0.89</td>
+                <td style="color: #f87171;">Rs 15,664.68</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">BREAKOUT (Momentum Beyond S1/R1)</td>
+                <td>55</td>
+                <td style="color: #10b981;">52.7%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 7,623.70</td>
+                <td>1.17</td>
+                <td style="color: #f87171;">Rs 17,366.14</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">BREAKOUT (40pt SL, 1:3 RR)</td>
+                <td>55</td>
+                <td style="color: #10b981;">54.5%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 13,931.54</td>
+                <td>1.33</td>
+                <td style="color: #f87171;">Rs 16,835.82</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">HYBRID (Bounce + Breakout Combined)</td>
+                <td>72</td>
+                <td style="color: #94a3b8;">43.1%</td>
+                <td style="font-weight: 700; color: #ef4444;">Rs -11,386.73</td>
+                <td>0.85</td>
+                <td style="color: #f87171;">Rs 20,496.38</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600; color: #f1f5f9;">HYBRID (40pt SL, 1:3 RR)</td>
+                <td>65</td>
+                <td style="color: #94a3b8;">43.1%</td>
+                <td style="font-weight: 700; color: #ef4444;">Rs -4,336.90</td>
+                <td>0.94</td>
+                <td style="color: #f87171;">Rs 15,517.09</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PARAMETRIC OPTIMIZATION -->
+        <div class="section">
+            <div class="sec-title">Top 6 Optimized Configurations</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Configuration</th>
+                        <th>Trades</th>
+                        <th>Win Rate</th>
+                        <th>Net P&L</th>
+                        <th>Profit Factor</th>
+                        <th>Max Drawdown</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=1 | SL=35 | RR=1:3.5 | Trail=Yes</td>
+                <td>29</td>
+                <td style="color: #10b981;">55.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 8,960.65</td>
+                <td style="color: #38bdf8;">1.49</td>
+                <td style="color: #f87171;">Rs 4,524.44</td>
+            </tr>
+            
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=1 | SL=40 | RR=1:3.5 | Trail=Yes</td>
+                <td>29</td>
+                <td style="color: #10b981;">55.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 8,799.17</td>
+                <td style="color: #38bdf8;">1.45</td>
+                <td style="color: #f87171;">Rs 4,847.41</td>
+            </tr>
+            
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=2 | SL=35 | RR=1:3.5 | Trail=Yes</td>
+                <td>32</td>
+                <td style="color: #10b981;">56.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 8,303.92</td>
+                <td style="color: #38bdf8;">1.4</td>
+                <td style="color: #f87171;">Rs 6,911.15</td>
+            </tr>
+            
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=1 | SL=35 | RR=1:3.5 | Trail=No</td>
+                <td>29</td>
+                <td style="color: #10b981;">55.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 8,135.77</td>
+                <td style="color: #38bdf8;">1.45</td>
+                <td style="color: #f87171;">Rs 4,524.45</td>
+            </tr>
+            
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=1 | SL=40 | RR=1:3.5 | Trail=No</td>
+                <td>29</td>
+                <td style="color: #10b981;">55.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 7,974.29</td>
+                <td style="color: #38bdf8;">1.41</td>
+                <td style="color: #f87171;">Rs 4,847.42</td>
+            </tr>
+            
+            <tr>
+                <td style="font-size: 13px; color: #e2e8f0;">MaxT=1 | SL=35 | RR=1:3.0 | Trail=Yes</td>
+                <td>29</td>
+                <td style="color: #10b981;">55.2%</td>
+                <td style="font-weight: 700; color: #10b981;">Rs 7,901.95</td>
+                <td style="color: #38bdf8;">1.44</td>
+                <td style="color: #f87171;">Rs 4,524.44</td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+
+        <!-- DETAILED TRADE LOG -->
+        <div class="section">
+            <div class="sec-title">Detailed Trade Log (Best Setup: Breakout + EMA + Trailing SL)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time Window</th>
+                        <th>Option Contract</th>
+                        <th>Playbook Trigger</th>
+                        <th>Entry Prem</th>
+                        <th>Exit Prem</th>
+                        <th>Points</th>
+                        <th>Net P&L</th>
+                        <th>Outcome</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-07</td>
+                <td>10:05 - 15:05</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24500 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 109.73</td>
+                <td style="font-family: monospace;">Rs 73.81</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-35.92 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -2,392.25</td>
+                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-16</td>
+                <td>09:40 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24150 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 44.93</td>
+                <td style="font-family: monospace;">Rs 19.02</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-25.91 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -1,734.67</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-21</td>
+                <td>10:35 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24200 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 114.64</td>
+                <td style="font-family: monospace;">Rs 109.97</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-4.67 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -364.54</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-23</td>
+                <td>09:25 - 14:30</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23900 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 37.12</td>
+                <td style="font-family: monospace;">Rs 56.66</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+19.53 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,216.18</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILED PROFIT HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-30</td>
+                <td>12:30 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24300 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 53.3</td>
+                <td style="font-family: monospace;">Rs 59.04</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+5.75 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 319.46</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-07-31</td>
+                <td>12:10 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24400 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 181.31</td>
+                <td style="font-family: monospace;">Rs 183.67</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+2.36 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 83.58</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-05</td>
+                <td>12:30 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24550 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 84.96</td>
+                <td style="font-family: monospace;">Rs 70.8</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-14.16 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -976.71</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-07</td>
+                <td>10:55 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24550 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 153.88</td>
+                <td style="font-family: monospace;">Rs 157.53</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+3.65 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 171.18</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-10</td>
+                <td>12:25 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24600 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 143.82</td>
+                <td style="font-family: monospace;">Rs 117.06</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-26.75 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -1,801.55</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-12</td>
+                <td>09:45 - 14:50</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24400 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 80.54</td>
+                <td style="font-family: monospace;">Rs 99.64</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+19.1 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,182.84</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILED PROFIT HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-14</td>
+                <td>10:10 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24350 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 164.15</td>
+                <td style="font-family: monospace;">Rs 158.29</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-5.85 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -447.12</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-18</td>
+                <td>09:30 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24250 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 111.9</td>
+                <td style="font-family: monospace;">Rs 147.79</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+35.89 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 2,269.13</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-19</td>
+                <td>09:25 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24100 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 82.02</td>
+                <td style="font-family: monospace;">Rs 107.01</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+24.99 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,565.39</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-24</td>
+                <td>11:20 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24200 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 119.62</td>
+                <td style="font-family: monospace;">Rs 128.29</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+8.67 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 501.08</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-26</td>
+                <td>12:00 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24300 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 93.11</td>
+                <td style="font-family: monospace;">Rs 92.11</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-1.01 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -123.87</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-08-27</td>
+                <td>11:10 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24150 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 44.47</td>
+                <td style="font-family: monospace;">Rs 54.92</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+10.45 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 625.96</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-01</td>
+                <td>09:40 - 11:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24050 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 113.25</td>
+                <td style="font-family: monospace;">Rs 77.3</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-35.95 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -2,394.96</td>
+                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-03</td>
+                <td>09:25 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 24000 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 40.48</td>
+                <td style="font-family: monospace;">Rs 14.9</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-25.59 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -1,713.16</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-04</td>
+                <td>09:50 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23950 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 184.6</td>
+                <td style="font-family: monospace;">Rs 179.26</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-5.34 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -416.32</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-15</td>
+                <td>10:45 - 15:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23350 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 104.75</td>
+                <td style="font-family: monospace;">Rs 207.08</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+102.33 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 6,583.05</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-17</td>
+                <td>09:30 - 13:05</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23300 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 40.2</td>
+                <td style="font-family: monospace;">Rs 59.7</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+19.5 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,213.81</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILED PROFIT HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-18</td>
+                <td>09:50 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23350 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 170.07</td>
+                <td style="font-family: monospace;">Rs 176.35</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+6.29 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 340.25</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-21</td>
+                <td>09:25 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23400 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 131.58</td>
+                <td style="font-family: monospace;">Rs 145.67</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+14.08 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 851.03</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-22</td>
+                <td>11:00 - 14:10</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23350 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 87.9</td>
+                <td style="font-family: monospace;">Rs 106.92</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+19.03 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,177.19</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILED PROFIT HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-23</td>
+                <td>09:55 - 14:55</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23400 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 73.02</td>
+                <td style="font-family: monospace;">Rs 92.2</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+19.17 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 1,188.61</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TRAILED PROFIT HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-25</td>
+                <td>14:00 - 15:10</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 23150 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 182.15</td>
+                <td style="font-family: monospace;">Rs 167.56</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-14.59 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -1,016.46</td>
+                <td><span style="background: rgba(148, 163, 184, 0.2); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">EOD EXIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-09-30</td>
+                <td>12:30 - 14:20</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 22750 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 91.82</td>
+                <td style="font-family: monospace;">Rs 56.08</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-35.74 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -2,378.50</td>
+                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-10-01</td>
+                <td>09:40 - 12:45</td>
+                <td><span style="background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 22550 PE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram S1 Breakdown Short</td>
+                <td style="font-family: monospace;">Rs 43.58</td>
+                <td style="font-family: monospace;">Rs 165.03</td>
+                <td style="font-family: monospace; color: #10b981; font-weight: 600;">+121.45 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 14px;">Rs 7,832.12</td>
+                <td><span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">TARGET 1:3.5 HIT</span></td>
+            </tr>
+            
+            <tr>
+                <td style="font-family: monospace; color: #94a3b8;">2026-10-05</td>
+                <td>10:40 - 12:05</td>
+                <td><span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">NIFTY 22500 CE</span></td>
+                <td style="font-size: 13px; color: #cbd5e1;">Telegram R1 Breakout Long</td>
+                <td style="font-family: monospace;">Rs 119.95</td>
+                <td style="font-family: monospace;">Rs 83.93</td>
+                <td style="font-family: monospace; color: #ef4444; font-weight: 600;">-36.02 pts</td>
+                <td style="font-family: monospace; font-weight: 700; color: #ef4444; font-size: 14px;">Rs -2,400.10</td>
+                <td><span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px;">STOP LOSS</span></td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

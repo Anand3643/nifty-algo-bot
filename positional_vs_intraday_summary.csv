@@ -1,0 +1,6 @@
+mode,trades,wins,losses,win_rate,total_net_pnl,profit_factor,max_drawdown,calmar,avg_trade,avg_hold_days,target_hits,sl_hits,expiry_or_time_exits,description
+intraday,270,145,125,53.7,277910.87,2.32,11788.9,23.57,1029.3,0.0,10,29,231,1. Pure Intraday (15:10 EOD Square-Off) [Baseline Champion]
+pos_current_weekly,204,61,143,29.9,185609.49,1.35,68556.65,2.71,909.85,1.57,41,142,12,2. Positional Current Weekly Options (Held Overnight)
+pos_next_weekly,175,47,128,26.86,36264.48,1.07,93644.95,0.39,207.23,2.1,35,127,11,3. Positional Next Weekly Options (Held Overnight)
+pos_monthly,175,49,126,28.0,40230.82,1.08,72984.53,0.55,229.89,1.99,30,124,17,4. Positional Monthly Options (Held Overnight)
+pos_futures,234,61,173,26.07,-202191.02,0.8,330989.71,-0.61,-864.06,0.93,56,166,1,"5. Positional NIFTY Futures (Index Points, No Theta Decay)"

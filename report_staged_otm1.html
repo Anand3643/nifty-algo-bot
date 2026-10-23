@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Options Backtest: OTM-1 & Staged Scale-Outs (3-Year Audit)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a2234;
+            --bg-card-hover: #222d44;
+            --border: #26334d;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.2);
+            --red: #ef4444;
+            --red-glow: rgba(239, 68, 68, 0.2);
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --amber: #f59e0b;
+            --cyan: #06b6d4;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 30px 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1380px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p { color: var(--text-muted); font-size: 15px; }
+        .pill-row { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+        .pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        .pill-gold { border-color: var(--amber); color: var(--amber); background: rgba(245, 158, 11, 0.1); }
+        .pill-green { border-color: var(--green); color: var(--green); background: var(--green-glow); }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; margin-bottom: 28px; }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: all 0.2s ease;
+        }
+        .card:hover { border-color: var(--blue); transform: translateY(-2px); }
+        .card-champion {
+            border-color: var(--green);
+            box-shadow: 0 0 25px var(--green-glow);
+            position: relative;
+        }
+        .champ-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: var(--green);
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .card h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; color: #fff; }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { color: var(--text-muted); }
+        .metric-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        .text-cyan { color: var(--cyan); }
+        .text-amber { color: var(--amber); }
+
+        .chart-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 28px;
+        }
+        .chart-box h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; }
+
+        .table-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 28px;
+            overflow-x: auto;
+        }
+        .table-box h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+        th {
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            text-align: left;
+            padding: 12px 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        tr:hover td { background: var(--bg-card-hover); }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge-win { background: var(--green-glow); color: var(--green); border: 1px solid var(--green); }
+        .badge-loss { background: var(--red-glow); color: var(--red); border: 1px solid var(--red); }
+        .badge-inst { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid var(--blue); }
+        .badge-subtle { background: rgba(255, 255, 255, 0.05); color: #d1d5db; }
+
+        .summary-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+        .summary-banner h4 { color: var(--green); margin-bottom: 6px; font-size: 16px; font-weight: 700; }
+        .summary-banner p { color: #d1d5db; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Institutional Options Backtest: OTM-1 & Staged Scale-Outs</h1>
+        <p>Comprehensive 3-Year & October 2026 MTD Backtest Audit (31-Oct-2023 to 21-Oct-2026 | 733 Sessions)</p>
+        <div class="pill-row">
+            <div class="pill pill-gold">Fixed 1 Lot (65 Qty)</div>
+            <div class="pill">Strike: OTM-1 (+50 CE / -50 PE)</div>
+            <div class="pill pill-green">Staged Exit: 50% @ +100 pts (1:2 RR) | 50% Runner @ +200 pts (1:4 RR)</div>
+            <div class="pill">Breakeven Lock: Entry + 4 pts buffer</div>
+            <div class="pill">Realistic Costs (STT, GST, ₹40 Bkrg, 0.5% Slippage)</div>
+        </div>
+    </div>
+
+    <div class="summary-banner">
+        <h4>Key Takeaways & Core Breakthroughs</h4>
+        <p>
+            <b>1. Profit Factor Surges to 2.52:</b> OTM-1 Staged Scale-out delivers the cleanest risk-adjusted metrics across 3 years. <br>
+            <b>2. Max Drawdown Slashed by 28%:</b> Drawdown drops from <b>Rs 19,504.79</b> down to <b>Rs 14,058.29</b> because OTM-1 options carry lower entry premium and bleed less on choppy reversal attempts.<br>
+            <b>3. October 2026 MTD Surges 4.4x:</b> Month-to-date October net profit jumped to <b>+Rs 14,475.19</b> compared to the ATM Baseline Trailed setup of <b>+Rs 3,245.70</b>, turning Monday's false breakdown into a green session (+Rs 2,809 net).
+        </p>
+    </div>
+
+    <div class="grid-3">
+        <!-- OTM-1 Staged Card -->
+        <div class="card card-champion">
+            <div class="champ-badge">MAX RISK-ADJUSTED</div>
+            <h3>OTM-1 Staged Scale-Out</h3>
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">50% @ +100 pts | SL to BE+4 | 50% @ +200 pts</div>
+            <div class="metric-row"><span class="metric-label">3-Year Net P&L</span><span class="metric-val text-green">+Rs 387,888.26</span></div>
+            <div class="metric-row"><span class="metric-label">Return on Capital (ROI)</span><span class="metric-val text-green">+775.8%</span></div>
+            <div class="metric-row"><span class="metric-label">Profit Factor (PF)</span><span class="metric-val text-cyan">2.52</span></div>
+            <div class="metric-row"><span class="metric-label">Max Drawdown</span><span class="metric-val text-red">Rs 14,058.29 (-28.1%)</span></div>
+            <div class="metric-row"><span class="metric-label">Calmar Ratio</span><span class="metric-val text-cyan">27.59x</span></div>
+            <div class="metric-row"><span class="metric-label">Win Rate</span><span class="metric-val">54.3% (204W / 172L)</span></div>
+            <div class="metric-row"><span class="metric-label">Avg Loss per Losing Trade</span><span class="metric-val text-red">-Rs 1,479.77 (Lowest)</span></div>
+            <div class="metric-row" style="background: rgba(16, 185, 129, 0.08); padding: 10px 8px; border-radius: 8px;">
+                <span class="metric-label" style="color: #fff; font-weight: 600;">October 2026 MTD P&L</span>
+                <span class="metric-val text-green" style="font-size: 16px;">+Rs 14,475.19</span>
+            </div>
+        </div>
+
+        <!-- ATM Staged Card -->
+        <div class="card">
+            <h3>ATM Staged Scale-Out</h3>
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">50% @ +100 pts | SL to BE+4 | 50% @ +200 pts (ATM Strike)</div>
+            <div class="metric-row"><span class="metric-label">3-Year Net P&L</span><span class="metric-val text-green">+Rs 416,273.42</span></div>
+            <div class="metric-row"><span class="metric-label">Return on Capital (ROI)</span><span class="metric-val text-green">+832.5%</span></div>
+            <div class="metric-row"><span class="metric-label">Profit Factor (PF)</span><span class="metric-val">2.29</span></div>
+            <div class="metric-row"><span class="metric-label">Max Drawdown</span><span class="metric-val text-red">Rs 16,147.26</span></div>
+            <div class="metric-row"><span class="metric-label">Calmar Ratio</span><span class="metric-val">25.78x</span></div>
+            <div class="metric-row"><span class="metric-label">Win Rate</span><span class="metric-val">53.8% (204W / 175L)</span></div>
+            <div class="metric-row"><span class="metric-label">Avg Loss per Losing Trade</span><span class="metric-val text-red">-Rs 1,843.30</span></div>
+            <div class="metric-row" style="background: rgba(255, 255, 255, 0.03); padding: 10px 8px; border-radius: 8px;">
+                <span class="metric-label" style="color: #fff; font-weight: 600;">October 2026 MTD P&L</span>
+                <span class="metric-val text-green" style="font-size: 16px;">+Rs 11,549.61</span>
+            </div>
+        </div>
+
+        <!-- ATM Baseline Trailed Card -->
+        <div class="card">
+            <h3>ATM Baseline (Trailed 50:200)</h3>
+            <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">SL: 50 | TP: 200 | Dynamic 15 pt Trail (Live Bot Default)</div>
+            <div class="metric-row"><span class="metric-label">3-Year Net P&L</span><span class="metric-val text-green">+Rs 463,526.83</span></div>
+            <div class="metric-row"><span class="metric-label">Return on Capital (ROI)</span><span class="metric-val text-green">+927.1%</span></div>
+            <div class="metric-row"><span class="metric-label">Profit Factor (PF)</span><span class="metric-val">2.44</span></div>
+            <div class="metric-row"><span class="metric-label">Max Drawdown</span><span class="metric-val text-red">Rs 19,504.79 (Highest)</span></div>
+            <div class="metric-row"><span class="metric-label">Calmar Ratio</span><span class="metric-val">23.76x</span></div>
+            <div class="metric-row"><span class="metric-label">Win Rate</span><span class="metric-val">55.8% (216W / 171L)</span></div>
+            <div class="metric-row"><span class="metric-label">Avg Loss per Losing Trade</span><span class="metric-val text-red">-Rs 1,878.87</span></div>
+            <div class="metric-row" style="background: rgba(255, 255, 255, 0.03); padding: 10px 8px; border-radius: 8px;">
+                <span class="metric-label" style="color: #fff; font-weight: 600;">October 2026 MTD P&L</span>
+                <span class="metric-val text-amber" style="font-size: 16px;">+Rs 3,245.70</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-box">
+        <h3>3-Year Cumulative Equity Curve (31-Oct-2023 to 21-Oct-2026)</h3>
+        <canvas id="equityChart" height="95"></canvas>
+    </div>
+
+    <!-- October Trades Ledger -->
+    <div class="table-box">
+        <h3>October 2026 Month-to-Date (MTD) Trade Ledger (OTM-1 Staged Scale-Out)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Contract</th>
+                    <th>Playbook</th>
+                    <th>Entry</th>
+                    <th>Exit 1 (50%)</th>
+                    <th>Exit 2 (50%)</th>
+                    <th>Avg Pts</th>
+                    <th>Net P&L</th>
+                    <th>Exit Outcome</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+    <tr>
+        <td><b>2026-10-01</b></td>
+        <td>09:40 &rarr; 13:40</td>
+        <td><span class="badge badge-inst">NIFTY 22500 PE</span></td>
+        <td>S1 Support Breakdown</td>
+        <td>Rs 23.34</td>
+        <td>Rs 122.61</td>
+        <td>Rs 222.11</td>
+        <td>+149.02 pts</td>
+        <td class="text-green"><b>Rs +9,624.00</b></td>
+        <td><span class="badge badge-subtle">TARGET 1 (+100) & TARGET 2 (+200) HIT</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-05</b></td>
+        <td>09:50 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 22550 PE</span></td>
+        <td>R2 Exhaustion Reversal</td>
+        <td>Rs 88.84</td>
+        <td>Rs 187.45</td>
+        <td>Rs 126.66</td>
+        <td>+68.22 pts</td>
+        <td class="text-green"><b>Rs +4,370.58</b></td>
+        <td><span class="badge badge-subtle">TARGET 1 (+100) & RUNNER EOD</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-07</b></td>
+        <td>09:35 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 22550 PE</span></td>
+        <td>Gap-and-Go Bearish ORB</td>
+        <td>Rs 58.16</td>
+        <td>Rs 54.39</td>
+        <td>Rs 54.39</td>
+        <td>-3.77 pts</td>
+        <td class="text-red"><b>Rs -299.19</b></td>
+        <td><span class="badge badge-subtle">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-12</b></td>
+        <td>10:55 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 22350 PE</span></td>
+        <td>S1 Support Breakdown</td>
+        <td>Rs 79.52</td>
+        <td>Rs 122.24</td>
+        <td>Rs 122.24</td>
+        <td>+42.71 pts</td>
+        <td class="text-green"><b>Rs +2,716.08</b></td>
+        <td><span class="badge badge-subtle">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-13</b></td>
+        <td>09:40 &rarr; 14:50</td>
+        <td><span class="badge badge-inst">NIFTY 22500 PE</span></td>
+        <td>R2 Exhaustion Reversal</td>
+        <td>Rs 80.74</td>
+        <td>Rs 30.19</td>
+        <td>Rs 30.19</td>
+        <td>-50.55 pts</td>
+        <td class="text-red"><b>Rs -3,338.91</b></td>
+        <td><span class="badge badge-subtle">STOP LOSS (-50 pts)</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-14</b></td>
+        <td>13:10 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 22500 PE</span></td>
+        <td>S1 Support Breakdown</td>
+        <td>Rs 48.76</td>
+        <td>Rs 31.91</td>
+        <td>Rs 31.91</td>
+        <td>-16.85 pts</td>
+        <td class="text-red"><b>Rs -1,146.88</b></td>
+        <td><span class="badge badge-subtle">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-16</b></td>
+        <td>10:45 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 23050 PE</span></td>
+        <td>R2 Exhaustion Reversal</td>
+        <td>Rs 133.06</td>
+        <td>Rs 130.04</td>
+        <td>Rs 130.04</td>
+        <td>-3.02 pts</td>
+        <td class="text-red"><b>Rs -259.49</b></td>
+        <td><span class="badge badge-subtle">EOD EXIT</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-19</b></td>
+        <td>09:25 &rarr; 09:35</td>
+        <td><span class="badge badge-inst">NIFTY 22950 PE</span></td>
+        <td>S1 Support Breakdown</td>
+        <td>Rs 99.88</td>
+        <td>Rs 49.13</td>
+        <td>Rs 49.13</td>
+        <td>-50.74 pts</td>
+        <td class="text-red"><b>Rs -3,353.60</b></td>
+        <td><span class="badge badge-subtle">STOP LOSS (-50 pts)</span></td>
+    </tr>
+    
+    <tr>
+        <td><b>2026-10-19</b></td>
+        <td>09:55 &rarr; 15:00</td>
+        <td><span class="badge badge-inst">NIFTY 23000 PE</span></td>
+        <td>S1 Support Breakdown</td>
+        <td>Rs 96.23</td>
+        <td>Rs 194.77</td>
+        <td>Rs 189.36</td>
+        <td>+95.84 pts</td>
+        <td class="text-green"><b>Rs +6,162.60</b></td>
+        <td><span class="badge badge-subtle">TARGET 1 (+100) & RUNNER EOD</span></td>
+    </tr>
+    
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('equityChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["2023-11-08", "2023-12-05", "2023-12-22", "2024-01-11", "2024-02-05", "2024-02-20", "2024-03-20", "2024-04-09", "2024-04-25", "2024-05-16", "2024-06-13", "2024-07-02", "2024-07-15", "2024-08-07", "2024-08-27", "2024-09-12", "2024-09-26", "2024-10-23", "2024-11-29", "2024-12-13", "2025-01-02", "2025-01-22", "2025-02-01", "2025-03-10", "2025-03-25", "2025-04-22", "2025-05-07", "2025-06-10", "2025-06-27", "2025-07-09", "2025-07-25", "2025-08-19", "2025-09-03", "2025-09-15", "2025-10-07", "2025-10-28", "2025-11-14", "2025-11-27", "2025-12-15", "2026-01-22", "2026-02-17", "2026-03-12", "2026-04-20", "2026-05-15", "2026-06-02", "2026-06-17", "2026-07-07", "2026-07-21", "2026-08-04", "2026-08-18", "2026-09-01", "2026-09-17", "2026-09-28", "2026-10-13", "2026-10-19"],
+            datasets: [
+                {
+                    label: 'OTM-1 Staged Scale-Out (50% @ 100, 50% @ 200) - Min Drawdown',
+                    data: [-22.85, 6409.52, 9519.74, 16573.94, 33273.26, 50571.93, 71967.83, 66544.44, 73483.42, 90496.59, 102424.83, 107360.24, 95172.81, 104171.35, 111688.09, 117493.72, 116054.49, 133867.55, 163344.86, 166473.64, 178960.73, 181952.15, 193029.3, 207568.17, 212885.06, 207747.4, 227668.62, 234949.32, 227959.93, 245083.15, 247628.0, 248020.15, 249041.61, 257766.03, 268619.14, 278997.69, 276276.21, 286251.71, 283395.84, 286646.73, 290282.32, 294425.51, 303598.98, 318335.19, 324854.42, 331700.19, 340165.02, 353404.36, 358815.57, 362140.0, 361778.43, 362383.59, 369537.13, 386485.63, 387888.26],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    tension: 0.1
+                },
+                {
+                    label: 'ATM Baseline (Trailed 50:200)',
+                    data: [-21.24, 7369.09, 13060.31, 15450.69, 28030.62, 50623.74, 70981.39, 64623.18, 64217.64, 85514.3, 94928.1, 103745.49, 89252.16, 98254.27, 106744.66, 109778.58, 111536.22, 131589.94, 167166.51, 171081.81, 193799.25, 204603.97, 219175.19, 233201.92, 237436.68, 232525.99, 257137.69, 272102.97, 263431.94, 285843.59, 288371.28, 290950.55, 294056.9, 306899.33, 317752.96, 330503.34, 327732.37, 346278.15, 342593.41, 347223.12, 350820.49, 355951.68, 372830.11, 396675.42, 402765.2, 413320.49, 416497.9, 424955.12, 431459.75, 438745.13, 438131.53, 444515.52, 454885.93, 467474.68, 466874.7],
+                    borderColor: '#3b82f6',
+                    borderWidth: 1.8,
+                    borderDash: [4, 4],
+                    pointRadius: 0,
+                    tension: 0.1
+                },
+                {
+                    label: 'ATM Staged Scale-Out',
+                    data: [-21.24, 7369.09, 9830.61, 16116.28, 33302.93, 51584.75, 73740.63, 67382.42, 73818.99, 96164.51, 102033.93, 108930.56, 94437.23, 103709.88, 112200.27, 117285.84, 117202.97, 136173.08, 166717.34, 170632.64, 183384.6, 184704.09, 196679.83, 212750.58, 218776.86, 212453.2, 233835.19, 239404.74, 230733.71, 250082.68, 252587.07, 253103.64, 253662.39, 264149.22, 276201.79, 285994.33, 283223.36, 299260.67, 295575.93, 300205.64, 303429.17, 306566.18, 316507.28, 332337.07, 340213.27, 349344.35, 356835.46, 370547.92, 377595.54, 381781.11, 381167.51, 389310.08, 399059.32, 418264.34, 419621.29],
+                    borderColor: '#a855f7',
+                    borderWidth: 1.8,
+                    pointRadius: 0,
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#d1d5db', font: { family: 'Inter', size: 12 } }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(c) { return c.dataset.label + ': Rs ' + c.raw.toLocaleString(); }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#9ca3af', maxTicksLimit: 12 }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: {
+                        color: '#9ca3af',
+                        callback: function(v) { return 'Rs ' + (v/1000).toFixed(0) + 'k'; }
+                    }
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>

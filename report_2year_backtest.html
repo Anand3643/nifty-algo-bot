@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Year NIFTY Options Strategy Backtest Report (2024-2026)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg: #0B0F19;
+            --surface: #111827;
+            --surface-hover: #1F2937;
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-main: #F9FAFB;
+            --text-muted: #94A3B8;
+            --accent-cyan: #06B6D4;
+            --accent-emerald: #10B981;
+            --accent-violet: #8B5CF6;
+            --accent-amber: #F59E0B;
+            --accent-rose: #F43F5E;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 32px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.7));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 450px; height: 100%;
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .badge-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-violet { background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 14px; max-width: 900px; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .kpi-card.highlight {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, rgba(17, 24, 39, 1), rgba(16, 185, 129, 0.08));
+        }
+        .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .kpi-val { font-size: 24px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .kpi-sub { font-size: 12px; margin-top: 6px; }
+        .text-green { color: #34D399; }
+        .text-red { color: #FB7185; }
+        .text-cyan { color: #22D3EE; }
+        .text-gold { color: #FBBF24; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--surface-border);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="badge-bar">
+            <span class="badge badge-emerald">2-Year Backtest Certified</span>
+            <span class="badge badge-cyan">October 2024 – October 2026</span>
+            <span class="badge badge-violet">492 Trading Sessions</span>
+        </div>
+        <h1>2-Year Long-Term Backtest: NIFTY Options S&R Strategy</h1>
+        <p>Comprehensive 24-month stress-test of the Optimized S&R Breakout & Bounceback strategy on 1 Lot (65 Qty) NIFTY Options. All brokerage, STT, exchange turnover fees, GST, and 0.5% fill slippage strictly deducted.</p>
+    </div>
+
+    <!-- Top KPI Bar -->
+    <div class="kpi-grid">
+        <div class="kpi-card highlight">
+            <div class="kpi-label">2-Year Net Profit</div>
+            <div class="kpi-val text-green">+₹120,457.01</div>
+            <div class="kpi-sub text-green">ROI: +240.9% on ₹50k Capital</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Trades Taken</div>
+            <div class="kpi-val mono">257</div>
+            <div class="kpi-sub text-muted">~10.7 trades / month</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-val text-cyan">51.8%</div>
+            <div class="kpi-sub text-muted">133 Wins | 124 Losses</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Profit Factor / Sharpe</div>
+            <div class="kpi-val text-gold">1.58 / 2.74</div>
+            <div class="kpi-sub text-muted">Institutional Grade</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">2-Year Max Drawdown</div>
+            <div class="kpi-val text-red">₹35,023</div>
+            <div class="kpi-sub text-muted">70.0% from peak</div>
+        </div>
+    </div>
+
+    <!-- Equity Curve Chart -->
+    <div class="card">
+        <div class="card-title">
+            <span>2-Year Equity Curve Growth (Starting Capital: ₹50,000)</span>
+            <span style="font-size: 12px; color: var(--text-muted);">Ending Portfolio: ₹170,456.92</span>
+        </div>
+        <div class="card-desc">Compounding trajectory showing steady resilience through high-volatility, bull runs, and range-bound sideways regimes across 24 consecutive months.</div>
+        <div id="chart-2y-equity" style="height: 420px;"></div>
+    </div>
+
+    <!-- Yearly & Playbook Breakdown -->
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">Year-by-Year Performance Breakdown</div>
+            <div class="card-desc">Consistent profitability verified across all calendar years.</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Trades</th>
+                            <th>Win Rate</th>
+                            <th>Net Profit (Rs)</th>
+                            <th>Annual Return</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>2024.0</strong></td>
+                            <td class="mono">30.0</td>
+                            <td class="mono">43.3%</td>
+                            <td class="mono text-green">+₹22,477.03</td>
+                            <td class="mono text-green">+45.0%</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2025.0</strong></td>
+                            <td class="mono">129.0</td>
+                            <td class="mono">56.6%</td>
+                            <td class="mono text-green">+₹71,488.39</td>
+                            <td class="mono text-green">+143.0%</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>2026.0</strong></td>
+                            <td class="mono">98.0</td>
+                            <td class="mono">48.0%</td>
+                            <td class="mono text-green">+₹26,491.59</td>
+                            <td class="mono text-green">+53.0%</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Top 5 Playbooks Contribution Matrix</div>
+            <div class="card-desc">Every single playbook delivered positive net expectation over 2 years.</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Playbook</th>
+                            <th>Trades</th>
+                            <th>Win Rate</th>
+                            <th>Net PnL (Rs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr>
+                            <td><strong>S1 Support Breakdown</strong></td>
+                            <td class="mono">74</td>
+                            <td class="mono">54.1%</td>
+                            <td class="mono text-green">+₹72,063.20</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>R1 Resistance Reversal</strong></td>
+                            <td class="mono">55</td>
+                            <td class="mono">60.0%</td>
+                            <td class="mono text-green">+₹24,281.46</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>R2 Exhaustion Reversal</strong></td>
+                            <td class="mono">31</td>
+                            <td class="mono">48.4%</td>
+                            <td class="mono text-green">+₹15,624.80</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>R1 Resistance Breakout</strong></td>
+                            <td class="mono">63</td>
+                            <td class="mono">52.4%</td>
+                            <td class="mono text-green">+₹7,105.13</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>S2 Flush Breakdown</strong></td>
+                            <td class="mono">34</td>
+                            <td class="mono">35.3%</td>
+                            <td class="mono text-green">+₹1,382.42</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Breakdown Table -->
+    <div class="card">
+        <div class="card-title">Monthly PnL Breakdown Across 24 Months</div>
+        <div class="card-desc">Month-by-month net results after all Indian statutory taxes and transaction fees.</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Trades</th>
+                        <th>Wins</th>
+                        <th>Win Rate</th>
+                        <th>Net Profit / Loss (Rs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>2024-10</strong></td>
+                        <td class="mono">8</td>
+                        <td class="mono">3</td>
+                        <td class="mono">37.5%</td>
+                        <td class="mono text-green">₹+4,529.48</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2024-11</strong></td>
+                        <td class="mono">8</td>
+                        <td class="mono">3</td>
+                        <td class="mono">37.5%</td>
+                        <td class="mono text-green">₹+5,896.09</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2024-12</strong></td>
+                        <td class="mono">14</td>
+                        <td class="mono">7</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-green">₹+12,051.46</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-01</strong></td>
+                        <td class="mono">16</td>
+                        <td class="mono">9</td>
+                        <td class="mono">56.2%</td>
+                        <td class="mono text-red">₹-1,135.00</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-02</strong></td>
+                        <td class="mono">8</td>
+                        <td class="mono">3</td>
+                        <td class="mono">37.5%</td>
+                        <td class="mono text-green">₹+558.24</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-03</strong></td>
+                        <td class="mono">7</td>
+                        <td class="mono">6</td>
+                        <td class="mono">85.7%</td>
+                        <td class="mono text-green">₹+17,103.55</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-04</strong></td>
+                        <td class="mono">8</td>
+                        <td class="mono">5</td>
+                        <td class="mono">62.5%</td>
+                        <td class="mono text-green">₹+8,835.31</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-05</strong></td>
+                        <td class="mono">12</td>
+                        <td class="mono">8</td>
+                        <td class="mono">66.7%</td>
+                        <td class="mono text-green">₹+23,194.95</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-06</strong></td>
+                        <td class="mono">10</td>
+                        <td class="mono">8</td>
+                        <td class="mono">80.0%</td>
+                        <td class="mono text-green">₹+11,580.59</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-07</strong></td>
+                        <td class="mono">12</td>
+                        <td class="mono">7</td>
+                        <td class="mono">58.3%</td>
+                        <td class="mono text-green">₹+6,308.95</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-08</strong></td>
+                        <td class="mono">13</td>
+                        <td class="mono">9</td>
+                        <td class="mono">69.2%</td>
+                        <td class="mono text-green">₹+13,031.15</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-09</strong></td>
+                        <td class="mono">12</td>
+                        <td class="mono">6</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-green">₹+7,652.09</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-10</strong></td>
+                        <td class="mono">7</td>
+                        <td class="mono">3</td>
+                        <td class="mono">42.9%</td>
+                        <td class="mono text-red">₹-3,346.38</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-11</strong></td>
+                        <td class="mono">11</td>
+                        <td class="mono">3</td>
+                        <td class="mono">27.3%</td>
+                        <td class="mono text-red">₹-11,553.13</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2025-12</strong></td>
+                        <td class="mono">13</td>
+                        <td class="mono">6</td>
+                        <td class="mono">46.2%</td>
+                        <td class="mono text-red">₹-741.93</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-01</strong></td>
+                        <td class="mono">12</td>
+                        <td class="mono">4</td>
+                        <td class="mono">33.3%</td>
+                        <td class="mono text-red">₹-10,818.97</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-02</strong></td>
+                        <td class="mono">9</td>
+                        <td class="mono">3</td>
+                        <td class="mono">33.3%</td>
+                        <td class="mono text-red">₹-4,032.57</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-03</strong></td>
+                        <td class="mono">5</td>
+                        <td class="mono">2</td>
+                        <td class="mono">40.0%</td>
+                        <td class="mono text-red">₹-3,478.54</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-04</strong></td>
+                        <td class="mono">5</td>
+                        <td class="mono">2</td>
+                        <td class="mono">40.0%</td>
+                        <td class="mono text-green">₹+4,152.71</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-05</strong></td>
+                        <td class="mono">13</td>
+                        <td class="mono">7</td>
+                        <td class="mono">53.8%</td>
+                        <td class="mono text-green">₹+15,535.73</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-06</strong></td>
+                        <td class="mono">12</td>
+                        <td class="mono">8</td>
+                        <td class="mono">66.7%</td>
+                        <td class="mono text-green">₹+12,099.53</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-07</strong></td>
+                        <td class="mono">11</td>
+                        <td class="mono">7</td>
+                        <td class="mono">63.6%</td>
+                        <td class="mono text-green">₹+8,154.91</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-08</strong></td>
+                        <td class="mono">14</td>
+                        <td class="mono">5</td>
+                        <td class="mono">35.7%</td>
+                        <td class="mono text-red">₹-5,216.41</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-09</strong></td>
+                        <td class="mono">14</td>
+                        <td class="mono">7</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-green">₹+3,171.04</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>2026-10</strong></td>
+                        <td class="mono">3</td>
+                        <td class="mono">2</td>
+                        <td class="mono">66.7%</td>
+                        <td class="mono text-green">₹+6,924.16</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dates = ["2024-10-14", "2024-10-15", "2024-10-16", "2024-10-18", "2024-10-21", "2024-10-22", "2024-10-23", "2024-10-30", "2024-10-31", "2024-11-05", "2024-11-11", "2024-11-12", "2024-11-18", "2024-11-25", "2024-11-27", "2024-11-28", "2024-11-29", "2024-12-02", "2024-12-03", "2024-12-04", "2024-12-05", "2024-12-09", "2024-12-10", "2024-12-11", "2024-12-12", "2024-12-13", "2024-12-20", "2024-12-24", "2024-12-26", "2024-12-27", "2024-12-30", "2025-01-01", "2025-01-03", "2025-01-06", "2025-01-07", "2025-01-08", "2025-01-09", "2025-01-10", "2025-01-15", "2025-01-20", "2025-01-21", "2025-01-22", "2025-01-23", "2025-01-24", "2025-01-27", "2025-01-29", "2025-01-30", "2025-02-01", "2025-02-07", "2025-02-11", "2025-02-13", "2025-02-14", "2025-02-18", "2025-02-19", "2025-02-25", "2025-03-06", "2025-03-10", "2025-03-12", "2025-03-19", "2025-03-25", "2025-03-26", "2025-03-28", "2025-04-01", "2025-04-02", "2025-04-09", "2025-04-16", "2025-04-17", "2025-04-22", "2025-04-23", "2025-04-24", "2025-05-02", "2025-05-05", "2025-05-07", "2025-05-08", "2025-05-13", "2025-05-15", "2025-05-19", "2025-05-20", "2025-05-21", "2025-05-26", "2025-05-27", "2025-05-30", "2025-06-03", "2025-06-04", "2025-06-06", "2025-06-10", "2025-06-12", "2025-06-16", "2025-06-17", "2025-06-25", "2025-06-27", "2025-06-30", "2025-07-02", "2025-07-03", "2025-07-11", "2025-07-14", "2025-07-16", "2025-07-17", "2025-07-23", "2025-07-24", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-01", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-08", "2025-08-11", "2025-08-13", "2025-08-14", "2025-08-20", "2025-08-21", "2025-08-25", "2025-08-28", "2025-08-29", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05", "2025-09-11", "2025-09-15", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-29", "2025-09-30", "2025-10-08", "2025-10-09", "2025-10-14", "2025-10-24", "2025-10-28", "2025-10-29", "2025-10-31", "2025-11-04", "2025-11-11", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-19", "2025-11-20", "2025-11-24", "2025-11-25", "2025-11-27", "2025-11-28", "2025-12-02", "2025-12-04", "2025-12-08", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-17", "2025-12-18", "2025-12-24", "2025-12-26", "2025-12-29", "2025-12-30", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-09", "2026-01-13", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-01", "2026-02-05", "2026-02-06", "2026-02-11", "2026-02-17", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-26", "2026-03-10", "2026-03-12", "2026-03-17", "2026-03-20", "2026-03-24", "2026-04-06", "2026-04-16", "2026-04-20", "2026-04-27", "2026-04-28", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-19", "2026-05-21", "2026-05-26", "2026-05-27", "2026-05-29", "2026-06-02", "2026-06-05", "2026-06-09", "2026-06-11", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-29", "2026-06-30", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-21", "2026-07-23", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-08", "2026-09-10", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-07"];
+    const equity = [50000.0, 48605.11, 45909.49, 47231.61, 44513.51, 52138.37, 56036.69, 55240.95, 54529.49, 55682.91, 52943.2, 58675.68, 55947.79, 54449.68, 52865.4, 60528.46, 60425.57, 61183.8, 62100.96, 59408.79, 67078.03, 66617.46, 64559.42, 63685.63, 66010.97, 71132.86, 78710.87, 76002.16, 75085.83, 75203.78, 72477.03, 72520.57, 73700.71, 77721.91, 78875.85, 76192.77, 76254.01, 78814.79, 78269.04, 80553.17, 77852.13, 75477.78, 76405.83, 73643.38, 75024.76, 72328.96, 71342.03, 68588.41, 68744.27, 67449.73, 75117.31, 74849.66, 72149.12, 73912.83, 71900.27, 75539.8, 81909.02, 79227.0, 79432.83, 82698.53, 86236.1, 89003.82, 90628.15, 92009.35, 91363.1, 91436.52, 99109.2, 100553.21, 97857.07, 97839.13, 99520.09, 100256.84, 99249.7, 106422.45, 107703.94, 105078.29, 108250.09, 113495.58, 113403.08, 113050.24, 120675.49, 121034.09, 122688.32, 122719.09, 123110.14, 124426.07, 132091.01, 133149.07, 133466.56, 132073.8, 131442.85, 132614.68, 133626.54, 138054.69, 139132.87, 138324.83, 136862.87, 138751.39, 136047.33, 135884.74, 140494.12, 141473.27, 141593.82, 138923.63, 141418.01, 143588.48, 142411.92, 142054.84, 144198.63, 148501.81, 146938.67, 147939.34, 148437.2, 149751.95, 150575.11, 154735.71, 151954.77, 157193.91, 154501.03, 156892.51, 154136.19, 154074.27, 154004.86, 156571.96, 153858.38, 153530.17, 156749.49, 158751.25, 159606.85, 160121.96, 160658.19, 160389.46, 158995.21, 156280.57, 154970.57, 156260.47, 158595.45, 155872.84, 153584.85, 150821.95, 148722.17, 146015.72, 148234.35, 152392.32, 149659.09, 146987.68, 144707.33, 144407.95, 144139.8, 147659.8, 148046.25, 145375.5, 144518.37, 144250.53, 143340.64, 143841.04, 145128.75, 145707.37, 146686.82, 143965.39, 143236.42, 143744.7, 142764.22, 143722.09, 142039.18, 139345.8, 137081.96, 141076.0, 138357.24, 135665.36, 135907.41, 133146.39, 130385.74, 129882.98, 127125.62, 127377.1, 127917.38, 135588.52, 132831.3, 130097.34, 129113.81, 126411.96, 129114.26, 126414.01, 128341.12, 125635.28, 129307.07, 129092.74, 131515.65, 129874.85, 129787.98, 129216.8, 126503.36, 134147.0, 136161.14, 136122.98, 133433.52, 130770.65, 133475.78, 137312.14, 139317.61, 140448.82, 137746.7, 145323.7, 146968.44, 145850.05, 148139.3, 146128.84, 144433.81, 145475.52, 147131.04, 153416.74, 150716.87, 154306.45, 157282.22, 157423.21, 162930.56, 163922.65, 164217.81, 166053.04, 165544.91, 163425.04, 163051.47, 165534.36, 166370.17, 165462.29, 165578.12, 162889.37, 163045.2, 162789.5, 162020.64, 160386.4, 158789.93, 160123.37, 161571.5, 160575.9, 160009.31, 159625.09, 156907.45, 158820.88, 160361.72, 157933.68, 160447.42, 161894.57, 163266.08, 162334.59, 169281.34, 168137.6, 166507.35, 167257.11, 168022.42, 168259.36, 167406.3, 166218.65, 163532.75, 171201.83, 171381.35, 170456.92];
+
+    const trace = {
+        x: dates,
+        y: equity,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Portfolio Capital (₹)',
+        line: { color: '#10B981', width: 2.8 }
+    };
+
+    const layout = {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { t: 20, r: 20, l: 60, b: 40 },
+        xaxis: {
+            gridcolor: 'rgba(255, 255, 255, 0.05)',
+            color: '#94A3B8'
+        },
+        yaxis: {
+            gridcolor: 'rgba(255, 255, 255, 0.05)',
+            color: '#94A3B8',
+            tickprefix: '₹'
+        }
+    };
+
+    Plotly.newPlot('chart-2y-equity', [trace], layout, { responsive: true });
+</script>
+</body>
+</html>

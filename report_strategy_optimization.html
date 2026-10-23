@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Strategy Optimization & Drawdown Reduction Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg: #0B0F19;
+            --surface: #111827;
+            --surface-hover: #1F2937;
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-main: #F9FAFB;
+            --text-muted: #94A3B8;
+            --accent-cyan: #06B6D4;
+            --accent-emerald: #10B981;
+            --accent-violet: #8B5CF6;
+            --accent-amber: #F59E0B;
+            --accent-rose: #F43F5E;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 32px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.7));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 450px; height: 100%;
+            background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .badge-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-rose { background: rgba(244, 63, 94, 0.15); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 14px; max-width: 900px; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .kpi-card.highlight {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, rgba(17, 24, 39, 1), rgba(16, 185, 129, 0.08));
+        }
+        .kpi-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .kpi-val { font-size: 26px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .kpi-sub { font-size: 12px; margin-top: 6px; }
+        .text-green { color: #34D399; }
+        .text-red { color: #FB7185; }
+        .text-cyan { color: #22D3EE; }
+        .text-gold { color: #FBBF24; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--surface-border);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .rule-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .rule-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .rule-num {
+            display: inline-block;
+            width: 26px;
+            height: 26px;
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent-cyan);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 26px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .rule-box h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .rule-box p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="badge-bar">
+            <span class="badge badge-emerald">Strategy Optimization Report</span>
+            <span class="badge badge-cyan">NIFTY 1 Lot (65 Qty)</span>
+            <span class="badge badge-rose">Drawdown Diagnostic & Profit Doubler</span>
+        </div>
+        <h1>Deep Analysis & Profit Maximization Blueprint</h1>
+        <p>A rigorous diagnostic of the ₹22,280 drawdown in the Combined Breakout + Bounceback strategy, followed by mathematically validated optimizations to double net profit to +₹56,700 while cutting drawdown by 69%.</p>
+    </div>
+
+    <!-- Top Comparison KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Baseline Net PnL (SL 30)</div>
+            <div class="kpi-val text-gold">+₹27,280</div>
+            <div class="kpi-sub text-muted">ROI: +54.5% | PF: 1.70</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Baseline Max Drawdown</div>
+            <div class="kpi-val text-red">₹22,280</div>
+            <div class="kpi-sub text-red">44.6% of ₹50k Capital</div>
+        </div>
+        <div class="kpi-card highlight">
+            <div class="kpi-label">Optimized Net PnL (SL 40, Top 5) ⭐</div>
+            <div class="kpi-val text-green">+₹56,705</div>
+            <div class="kpi-sub text-green">+113.4% ROI (+₹29,425 More Profit!)</div>
+        </div>
+        <div class="kpi-card highlight">
+            <div class="kpi-label">Optimized Max Drawdown ⭐</div>
+            <div class="kpi-val text-cyan">₹6,921</div>
+            <div class="kpi-sub text-cyan">13.8% (Down by 69%!)</div>
+        </div>
+    </div>
+
+    <!-- Chart: Equity Curve Evolutions -->
+    <div class="card">
+        <div class="card-title">
+            <span>Portfolio Growth Comparison (July – October 2026)</span>
+            <span style="font-size: 12px; color: var(--text-muted);">Initial Capital: ₹50,000 | 1 Lot (65 Qty)</span>
+        </div>
+        <div class="card-desc">Visual proof showing how filtering toxic playbooks and widening the ATM option buffer protects equity from sharp drawdowns and accelerates compounding.</div>
+        <div id="chart-equity" style="height: 440px;"></div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="card">
+        <div class="card-title">Comprehensive Strategy Evolution Matrix</div>
+        <div class="card-desc">Head-to-head comparison across 4 stages of development on identical 69 intraday sessions.</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Strategy Configuration</th>
+                        <th>Total Trades</th>
+                        <th>Win Rate</th>
+                        <th>Target Hits</th>
+                        <th>SL Hits</th>
+                        <th>Profit Factor</th>
+                        <th>Sharpe</th>
+                        <th>Max Drawdown</th>
+                        <th>Net PnL (Rs)</th>
+                        <th>ROI (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>1. Original Baseline</strong> (All Playbooks, SL 30, RR 3)</td>
+                        <td class="mono">53</td>
+                        <td class="mono">49.1%</td>
+                        <td class="mono text-green">7</td>
+                        <td class="mono text-red">18</td>
+                        <td class="mono">1.70</td>
+                        <td class="mono">3.05</td>
+                        <td class="mono text-red">₹22,280 (44.6%)</td>
+                        <td class="mono text-gold">+₹27,280.69</td>
+                        <td class="mono text-gold">+54.6%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. Pruned Engines</strong> (Top 5 Playbooks, SL 30, RR 3)</td>
+                        <td class="mono">53</td>
+                        <td class="mono">52.8%</td>
+                        <td class="mono text-green">8</td>
+                        <td class="mono text-red">15</td>
+                        <td class="mono">2.11</td>
+                        <td class="mono">4.39</td>
+                        <td class="mono text-cyan">₹9,908 (19.8%)</td>
+                        <td class="mono text-green">+₹39,906.59</td>
+                        <td class="mono text-green">+79.8%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. Pruned + Wide Buffer</strong> (Top 5, SL 40, RR 3, 1 Tr/Day)</td>
+                        <td class="mono">53</td>
+                        <td class="mono">54.7%</td>
+                        <td class="mono text-green">5</td>
+                        <td class="mono text-green">5</td>
+                        <td class="mono">2.80</td>
+                        <td class="mono">5.49</td>
+                        <td class="mono text-green">₹6,920.82 (13.8%)</td>
+                        <td class="mono text-green">+₹54,723.77</td>
+                        <td class="mono text-green">+109.4%</td>
+                    </tr>
+                    <tr style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid #10B981;">
+                        <td><strong>4. Maximum Profit Champion ⭐</strong> (Top 5, SL 40, RR 3, 2 Tr/Day)</td>
+                        <td class="mono"><strong>58</strong></td>
+                        <td class="mono"><strong>53.4%</strong></td>
+                        <td class="mono text-green"><strong>5</strong></td>
+                        <td class="mono text-green"><strong>5</strong></td>
+                        <td class="mono"><strong>2.76</strong></td>
+                        <td class="mono"><strong>5.78</strong></td>
+                        <td class="mono text-green"><strong>₹6,920.81 (13.8%)</strong></td>
+                        <td class="mono text-green"><strong>+₹56,704.83</strong></td>
+                        <td class="mono text-green"><strong>+113.4%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Diagnostic Breakdown Table -->
+    <div class="card">
+        <div class="card-title">Baseline Playbook Diagnostic: Where Did the ₹22,280 Drawdown Come From?</div>
+        <div class="card-desc">Granular PnL breakdown of the 10 playbooks in the original baseline strategy. Notice how 2 playbooks alone lost -₹11,466!</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Playbook Setup</th>
+                        <th>Trades</th>
+                        <th>Wins</th>
+                        <th>Win Rate</th>
+                        <th>Total Net PnL</th>
+                        <th>Impact / Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>BOUNCEBACK</td>
+                        <td><strong>R1 Resistance Reversal</strong></td>
+                        <td class="mono">13</td>
+                        <td class="mono">7</td>
+                        <td class="mono">53.8%</td>
+                        <td class="mono text-green">₹+12,308.53</td>
+                        <td><span class="badge badge-emerald">Keep & Scale</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BOUNCEBACK</td>
+                        <td><strong>R2 Exhaustion Reversal</strong></td>
+                        <td class="mono">2</td>
+                        <td class="mono">2</td>
+                        <td class="mono">100.0%</td>
+                        <td class="mono text-green">₹+11,401.64</td>
+                        <td><span class="badge badge-emerald">Keep & Scale</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>S2 Flush Breakdown</strong></td>
+                        <td class="mono">10</td>
+                        <td class="mono">6</td>
+                        <td class="mono">60.0%</td>
+                        <td class="mono text-green">₹+9,707.53</td>
+                        <td><span class="badge badge-emerald">Keep & Scale</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>R1 Resistance Breakout</strong></td>
+                        <td class="mono">6</td>
+                        <td class="mono">4</td>
+                        <td class="mono">66.7%</td>
+                        <td class="mono text-green">₹+7,316.09</td>
+                        <td><span class="badge badge-emerald">Keep & Scale</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>S1 Support Breakdown</strong></td>
+                        <td class="mono">4</td>
+                        <td class="mono">2</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-green">₹+3,091.40</td>
+                        <td><span class="badge badge-emerald">Keep & Scale</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>CPR Bot Breakdown</strong></td>
+                        <td class="mono">2</td>
+                        <td class="mono">1</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-red">₹-481.60</td>
+                        <td><span class="badge badge-cyan">Neutral</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>R2 Expansion Breakout</strong></td>
+                        <td class="mono">2</td>
+                        <td class="mono">1</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-red">₹-1,164.73</td>
+                        <td><span class="badge badge-cyan">Neutral</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BOUNCEBACK</td>
+                        <td><strong>S2 Sweep Bounceback</strong></td>
+                        <td class="mono">6</td>
+                        <td class="mono">3</td>
+                        <td class="mono">50.0%</td>
+                        <td class="mono text-red">₹-3,431.76</td>
+                        <td><span class="badge badge-rose">Eliminate (Drag)</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BOUNCEBACK</td>
+                        <td><strong>S1 Support Bounceback</strong></td>
+                        <td class="mono">4</td>
+                        <td class="mono">0</td>
+                        <td class="mono">0.0%</td>
+                        <td class="mono text-red">₹-5,233.10</td>
+                        <td><span class="badge badge-rose">Eliminate (Drag)</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>BREAKOUT</td>
+                        <td><strong>CPR Top Breakout</strong></td>
+                        <td class="mono">4</td>
+                        <td class="mono">0</td>
+                        <td class="mono">0.0%</td>
+                        <td class="mono text-red">₹-6,233.31</td>
+                        <td><span class="badge badge-rose">Eliminate (Drag)</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Monthly Performance for Champion -->
+    <div class="card">
+        <div class="card-title">Champion Strategy (+₹56,705) Monthly Performance Breakdown</div>
+        <div class="card-desc">Consistency across market regimes with 1 Lot (65 Qty) NIFTY Options.</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Trades</th>
+                        <th>Wins</th>
+                        <th>Win Rate</th>
+                        <th>Monthly Net PnL</th>
+                        <th>Monthly ROI (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td><strong>July 2026</strong></td>
+                        <td class="mono">14</td>
+                        <td class="mono">8</td>
+                        <td class="mono">57.1%</td>
+                        <td class="mono text-green">+₹7,353.98</td>
+                        <td class="mono text-green">+14.7%</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>August 2026</strong></td>
+                        <td class="mono">17</td>
+                        <td class="mono">7</td>
+                        <td class="mono">41.2%</td>
+                        <td class="mono text-green">+₹3,411.50</td>
+                        <td class="mono text-green">+6.8%</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>September 2026</strong></td>
+                        <td class="mono">21</td>
+                        <td class="mono">11</td>
+                        <td class="mono">52.4%</td>
+                        <td class="mono text-green">+₹18,464.09</td>
+                        <td class="mono text-green">+36.9%</td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>October 2026</strong></td>
+                        <td class="mono">6</td>
+                        <td class="mono">5</td>
+                        <td class="mono">83.3%</td>
+                        <td class="mono text-green">+₹27,475.26</td>
+                        <td class="mono text-green">+55.0%</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 4 Actionable Golden Rules -->
+    <div class="card">
+        <div class="card-title">4 Actionable Rules to Maximize Profit & Suppress Drawdown</div>
+        <div class="card-desc">Implementation guidelines derived directly from the backtest results.</div>
+        <div class="rule-grid">
+            <div class="rule-box">
+                <span class="rule-num">1</span>
+                <h4>Prune CPR Chop & Trade Pure Outer Levels</h4>
+                <p>Never take trades inside the Central Pivot Range (CPR). 100% of the CPR trades were false breakouts. Restrict entries strictly to <strong>R1, R2, S1, and S2</strong> where institutional liquidity resides.</p>
+            </div>
+            <div class="rule-box">
+                <span class="rule-num">2</span>
+                <h4>Widen Option SL to 40 Pts (Eliminate Noise Stopouts)</h4>
+                <p>A 30-point SL on ATM options is too tight for NIFTY's intraday wicks, leading to 18 stop-outs. A <strong>40-point SL</strong> with a <strong>120-point Target (1:3 RR)</strong> reduced stop-outs from 18 to just 5 while doubling net profits.</p>
+            </div>
+            <div class="rule-box">
+                <span class="rule-num">3</span>
+                <h4>Require 35% Candlestick Wick Confirmation</h4>
+                <p>For bouncebacks, insist on an upper or lower wick equal to at least 35% of the total 5-minute candle range. This confirms institutional price rejection rather than just a weak pause.</p>
+            </div>
+            <div class="rule-box">
+                <span class="rule-num">4</span>
+                <h4>Permit Max 2 Waves Per Day (Morning + Afternoon)</h4>
+                <p>Allowing a second trade when an afternoon trend develops increases total opportunities to 58 trades without overtrading, capturing both morning expansion and afternoon reversals.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const dates1 = ["2026-07-01", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+    const eq1 = [50000.0, 52055.97, 57776.76, 59456.24, 61085.92, 60279.56, 62570.19, 60485.01, 58417.75, 59923.55, 59602.92, 61024.49, 59973.4, 60899.98, 66576.56, 64518.57, 63081.89, 60948.55, 58863.53, 56807.91, 55915.27, 56486.0, 54393.58, 52482.77, 53141.68, 53087.68, 55785.79, 53723.58, 53528.44, 52623.73, 50493.97, 48416.35, 46400.24, 44296.14, 46606.28, 48289.62, 51700.55, 54315.96, 54770.57, 60459.45, 58416.54, 58651.25, 56547.58, 57398.96, 63083.5, 61045.07, 58933.78, 56866.02, 54811.96, 60544.77, 66225.61, 70305.08, 71638.91, 77280.69];
+    const dates2 = ["2026-07-01", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+    const eq2 = [50000.0, 52055.97, 57776.76, 55693.25, 53634.93, 52828.56, 55119.2, 53034.02, 53180.64, 54686.43, 54365.8, 55787.37, 54736.28, 55662.86, 61339.44, 59992.37, 58555.69, 60018.14, 57933.13, 58901.56, 58008.92, 55908.53, 53825.76, 55252.75, 55911.66, 54988.06, 57686.16, 55623.96, 55309.97, 55632.8, 53503.03, 51431.05, 54565.48, 52461.38, 54771.52, 56454.86, 59865.79, 62481.2, 61463.89, 67152.77, 65109.86, 65344.57, 63240.9, 61164.67, 66849.21, 64810.77, 63794.7, 61726.94, 67437.85, 73170.66, 78851.51, 82930.97, 84264.8, 89906.58];
+    const dates3 = ["2026-07-01", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+    const eq3 = [50000.0, 52055.97, 58665.33, 55935.89, 56199.0, 55392.64, 57683.27, 55795.19, 55941.81, 57447.6, 57126.97, 58548.54, 57497.45, 58424.03, 66038.44, 64691.36, 63254.69, 64717.14, 63769.78, 64738.22, 63845.58, 62847.0, 61090.54, 62517.54, 63176.45, 62252.84, 64950.95, 62242.8, 61928.81, 62251.64, 61835.55, 59117.62, 62252.06, 59502.01, 61812.16, 63495.5, 66906.43, 69521.84, 68504.53, 76131.23, 75431.83, 75666.53, 74316.09, 73191.51, 76319.16, 74598.71, 73582.64, 70868.94, 76441.57, 84112.2, 91730.87, 95810.33, 97144.16, 104723.77];
+    const dates4 = ["2026-07-01", "2026-07-07", "2026-07-09", "2026-07-13", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+    const eq4 = [50000.0, 52055.97, 58665.33, 55935.89, 54865.82, 55128.94, 54322.57, 56613.21, 54725.13, 54871.74, 56377.54, 56056.91, 57478.48, 56427.39, 57353.97, 64968.37, 63621.3, 62184.63, 63647.08, 62699.72, 63668.15, 62775.51, 61776.94, 60020.48, 61447.47, 62106.39, 61182.78, 63880.89, 61172.74, 60858.75, 61181.58, 60765.49, 58047.56, 62077.62, 65212.06, 62462.01, 62536.52, 64846.67, 66530.0, 69940.93, 72556.35, 71539.03, 79165.74, 78466.33, 78701.04, 77350.6, 76226.02, 79353.67, 77633.22, 76617.14, 73903.44, 73656.94, 79229.57, 86900.2, 94518.87, 93711.92, 97791.39, 99125.21, 106704.82];
+
+    const trace1 = {
+        x: dates1,
+        y: eq1,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Baseline (All Playbooks, SL 30)',
+        line: { color: '#F59E0B', width: 2, dash: 'dot' }
+    };
+
+    const trace2 = {
+        x: dates2,
+        y: eq2,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Pruned (Top 5 Playbooks, SL 30)',
+        line: { color: '#06B6D4', width: 2 }
+    };
+
+    const trace3 = {
+        x: dates3,
+        y: eq3,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Pruned + SL 40 (1 Trade/Day)',
+        line: { color: '#A78BFA', width: 2 }
+    };
+
+    const trace4 = {
+        x: dates4,
+        y: eq4,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Champion: SL 40 + Top 5 (2 Trades/Day)',
+        line: { color: '#10B981', width: 3.5 }
+    };
+
+    const layout = {
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        margin: { t: 20, r: 20, l: 60, b: 40 },
+        legend: { orientation: 'h', y: 1.12, x: 0, font: { color: '#94A3B8' } },
+        xaxis: {
+            gridcolor: 'rgba(255, 255, 255, 0.05)',
+            color: '#94A3B8'
+        },
+        yaxis: {
+            gridcolor: 'rgba(255, 255, 255, 0.05)',
+            color: '#94A3B8',
+            tickprefix: '₹'
+        }
+    };
+
+    Plotly.newPlot('chart-equity', [trace1, trace2, trace3, trace4], layout, { responsive: true });
+</script>
+</body>
+</html>

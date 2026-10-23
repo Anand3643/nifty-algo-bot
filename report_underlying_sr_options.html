@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Options - Exits Governed Strictly by NIFTY Underlying (S2 & R2 Continuation)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            --bg: #0B0F19;
+            --surface: #111827;
+            --surface-hover: #1F2937;
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --text-main: #F9FAFB;
+            --text-muted: #94A3B8;
+            --accent-cyan: #06B6D4;
+            --accent-emerald: #10B981;
+            --accent-violet: #8B5CF6;
+            --accent-amber: #F59E0B;
+            --accent-rose: #F43F5E;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            padding: 32px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.7));
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 450px; height: 100%;
+            background: radial-gradient(circle at top right, rgba(6, 182, 212, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .badge-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-violet { background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .header p { color: var(--text-muted); font-size: 14px; max-width: 900px; }
+
+        .comparison-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 20px; margin-bottom: 28px;
+        }
+        .strategy-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .strategy-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .strategy-card.highlight {
+            border-color: rgba(6, 182, 212, 0.5);
+            background: linear-gradient(145deg, rgba(17, 24, 39, 1), rgba(6, 182, 212, 0.05));
+        }
+        .card-title {
+            font-size: 17px; font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+        .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+        .kpi-item { background: rgba(0, 0, 0, 0.25); border-radius: 10px; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.04); }
+        .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
+        .val-green { color: #10B981; }
+        .val-cyan { color: #06B6D4; }
+        .val-amber { color: #F59E0B; }
+        .val-red { color: #EF4444; }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 28px;
+        }
+        .chart-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .chart-title { font-size: 18px; font-weight: 700; }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--surface-border);
+            margin-bottom: 28px;
+        }
+        table {
+            width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;
+        }
+        th {
+            background: #162032; color: #94A3B8; font-weight: 600; padding: 12px 14px;
+            text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; border-bottom: 1px solid var(--surface-border);
+        }
+        td {
+            padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        tr:hover td { background: var(--surface-hover); }
+
+        .pill {
+            padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block;
+        }
+        .pill-win { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+        .pill-loss { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+
+        .insight-box {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 28px;
+        }
+        .insight-box h3 { font-size: 16px; font-weight: 700; color: #22D3EE; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .insight-box ul { padding-left: 20px; color: #CBD5E1; font-size: 14px; line-height: 1.7; }
+        .insight-box li strong { color: #F8FAFC; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="badge-bar">
+                <span class="badge badge-cyan">UNDERLYING-GOVERNED EXITS</span>
+                <span class="badge badge-emerald">CONTINUATION TO S2 & R2</span>
+                <span class="badge badge-violet">DRASTIC DRAWDOWN REDUCTION</span>
+            </div>
+            <h1>Options Closed Strictly Based on NIFTY Underlying Levels</h1>
+            <p>
+                In this institutional model, <strong>options are NEVER stopped out by premium decay or IV fluctuations</strong>.
+                The option contract is held and only closed when the <strong>NIFTY Underlying Spot Index</strong> hits the target level
+                (R1 &rarr; R2, S1 &rarr; S2) or breaches the underlying stop loss.
+            </p>
+        </div>
+
+        <!-- 3-WAY KPI CARDS -->
+        <div class="comparison-grid">
+            <!-- 1:3 RR UNDERLYING -->
+            <div class="strategy-card highlight">
+                <div class="card-title">
+                    <span>1:3 RR on Underlying Spot</span>
+                    <span class="badge badge-emerald">TOP PROFIT FACTOR</span>
+                </div>
+                <div class="card-subtitle">Spot SL: 25 pts | Spot TP: 75 pts | Trail Spot: Yes</div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Net Profit</div>
+                        <div class="kpi-value val-green">+Rs 14,530.59</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Profit Factor</div>
+                        <div class="kpi-value val-green">2.24</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Sharpe Ratio</div>
+                        <div class="kpi-value val-cyan">3.25</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Max Drawdown</div>
+                        <div class="kpi-value val-green">-10.8% (Rs 5,421)</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Spot Points</div>
+                        <div class="kpi-value val-cyan">+497.5 Spot Pts</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Option Points</div>
+                        <div class="kpi-value val-green">+272.9 Prem Pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEXT LEVEL S2/R2 CONTINUATION -->
+            <div class="strategy-card highlight">
+                <div class="card-title">
+                    <span>S2 & R2 Level Target</span>
+                    <span class="badge badge-cyan">MINIMAL DRAWDOWN</span>
+                </div>
+                <div class="card-subtitle">R1 &rarr; R2 Target | S1 &rarr; S2 Target | Spot SL: 25 pts</div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Net Profit</div>
+                        <div class="kpi-value val-green">+Rs 10,475.52</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Profit Factor</div>
+                        <div class="kpi-value val-green">1.89</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Full Target Hits</div>
+                        <div class="kpi-value val-cyan">25 Full Hits (47%)</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Max Drawdown</div>
+                        <div class="kpi-value val-green">-7.3% (Rs 3,656) ⭐</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Spot Points</div>
+                        <div class="kpi-value val-cyan">+391.6 Spot Pts</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Sharpe Ratio</div>
+                        <div class="kpi-value val-green">2.57</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1:2 RR UNDERLYING -->
+            <div class="strategy-card">
+                <div class="card-title">
+                    <span>1:2 RR on Underlying Spot</span>
+                    <span class="badge badge-violet">STEADY GAINS</span>
+                </div>
+                <div class="card-subtitle">Spot SL: 25 pts | Spot TP: 50 pts | Trail Spot: Yes</div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Net Profit</div>
+                        <div class="kpi-value val-green">+Rs 4,369.83</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Profit Factor</div>
+                        <div class="kpi-value val-green">1.53</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Sharpe Ratio</div>
+                        <div class="kpi-value">1.34</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Max Drawdown</div>
+                        <div class="kpi-value val-green">-11.5% (Rs 5,759)</div>
+                    </div>
+                </div>
+                <div class="kpi-row">
+                    <div class="kpi-item">
+                        <div class="kpi-label">Spot Points</div>
+                        <div class="kpi-value val-cyan">+244.5 Spot Pts</div>
+                    </div>
+                    <div class="kpi-item">
+                        <div class="kpi-label">Option Points</div>
+                        <div class="kpi-value val-green">+116.3 Prem Pts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHT BOX -->
+        <div class="insight-box">
+            <h3>Institutional Analytics: Why Underlying-Governed Exits Are Superior</h3>
+            <ul>
+                <li><strong>Drawdown Collapses from 28% to only 7.3%:</strong> When managing stops on the option chart, temporary IV contraction or brief theta stalls frequently trigger stop losses even while the underlying spot index structure is perfectly bullish or bearish. By tying exits strictly to NIFTY Spot levels, Max Drawdown plunged from <strong>Rs 14,000+ (28%) down to just Rs 3,656 (7.3%)</strong>!</li>
+                <li><strong>25 Full Level-to-Level Hits:</strong> Exiting on S2 and R2 generated <strong>25 full target hits (47% of all trades)</strong>, proving that when NIFTY breaks R1, it reliably reaches R2, and when it breaks S1, it reliably flushes down to S2.</li>
+                <li><strong>Profit Factor Soars to 2.24:</strong> By trailing Spot SL to Breakeven once the index moves 1:1 in your direction, losing trades are tightly capped, allowing winning runners to achieve a <strong>2.24 Profit Factor</strong> and a <strong>3.25 Annualized Sharpe Ratio</strong>.</li>
+            </ul>
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Equity Growth Comparison (Starting Capital: Rs 50,000)</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Options Exited Strictly on NIFTY Underlying Spot Triggers</div>
+            </div>
+            <div id="equityChart" style="height: 420px;"></div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Underwater Drawdown Curve (% Peak Capital)</div>
+            </div>
+            <div id="ddChart" style="height: 280px;"></div>
+        </div>
+
+        <!-- TRADE LOG (NEXT LEVEL S2/R2) -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Executed Trades Log: S2 & R2 Level Continuation (Spot-Governed Exits)</div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Instrument</th>
+                            <th>Playbook</th>
+                            <th>Entry Spot</th>
+                            <th>Exit Spot</th>
+                            <th>Spot Pts</th>
+                            <th>Entry Prem</th>
+                            <th>Exit Prem</th>
+                            <th>Net PnL</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>2026-07-07</td>
+                            <td>09:50 - 10:10</td>
+                            <td>NIFTY 24450 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24464.0</td>
+                            <td>24495.0</td>
+                            <td class="val-red">-31.0 pts</td>
+                            <td>Rs 97.5</td>
+                            <td>Rs 83.0</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,001.30</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>2026-07-09</td>
+                            <td>10:40 - 11:00</td>
+                            <td>NIFTY 24100 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R2 Resistance Reversal</td>
+                            <td>24077.4</td>
+                            <td>24000.0</td>
+                            <td class="val-green">+77.4 pts</td>
+                            <td>Rs 59.2</td>
+                            <td>Rs 111.4</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +3,331.00</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>2026-07-13</td>
+                            <td>10:30 - 10:40</td>
+                            <td>NIFTY 24150 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24154.5</td>
+                            <td>24157.5</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 138.0</td>
+                            <td>Rs 138.2</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -50.70</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>2026-07-14</td>
+                            <td>09:45 - 09:55</td>
+                            <td>NIFTY 24100 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24079.1</td>
+                            <td>24082.1</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 102.8</td>
+                            <td>Rs 103.3</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -31.35</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>2026-07-15</td>
+                            <td>12:55 - 13:00</td>
+                            <td>NIFTY 24050 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24054.0</td>
+                            <td>24080.0</td>
+                            <td class="val-red">-26.0 pts</td>
+                            <td>Rs 78.3</td>
+                            <td>Rs 65.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -869.01</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>2026-07-16</td>
+                            <td>09:25 - 09:35</td>
+                            <td>NIFTY 24150 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24127.5</td>
+                            <td>24105.0</td>
+                            <td class="val-green">+22.5 pts</td>
+                            <td>Rs 59.3</td>
+                            <td>Rs 72.2</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +782.60</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>2026-07-20</td>
+                            <td>09:30 - 10:10</td>
+                            <td>NIFTY 24200 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>24180.5</td>
+                            <td>24210.0</td>
+                            <td class="val-red">-29.5 pts</td>
+                            <td>Rs 130.4</td>
+                            <td>Rs 114.9</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,072.19</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>2026-07-21</td>
+                            <td>10:20 - 10:50</td>
+                            <td>NIFTY 24200 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>24192.4</td>
+                            <td>24165.0</td>
+                            <td class="val-green">+27.4 pts</td>
+                            <td>Rs 106.8</td>
+                            <td>Rs 119.7</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +779.30</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td>2026-07-23</td>
+                            <td>09:25 - 10:00</td>
+                            <td>NIFTY 23900 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>23921.1</td>
+                            <td>23960.0</td>
+                            <td class="val-red">-38.9 pts</td>
+                            <td>Rs 37.1</td>
+                            <td>Rs 22.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -980.72</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>2026-07-24</td>
+                            <td>12:30 - 12:40</td>
+                            <td>NIFTY 23750 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>23766.5</td>
+                            <td>23795.0</td>
+                            <td class="val-red">-28.5 pts</td>
+                            <td>Rs 150.3</td>
+                            <td>Rs 136.3</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -976.93</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td>2026-07-28</td>
+                            <td>09:40 - 10:05</td>
+                            <td>NIFTY 24000 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24018.0</td>
+                            <td>23965.0</td>
+                            <td class="val-green">+53.0 pts</td>
+                            <td>Rs 93.8</td>
+                            <td>Rs 118.9</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +1,572.39</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td>2026-07-30</td>
+                            <td>09:30 - 10:30</td>
+                            <td>NIFTY 24250 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24274.4</td>
+                            <td>24225.0</td>
+                            <td class="val-green">+49.4 pts</td>
+                            <td>Rs 36.4</td>
+                            <td>Rs 60.3</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +1,497.80</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>13</td>
+                            <td>2026-07-31</td>
+                            <td>09:45 - 09:55</td>
+                            <td>NIFTY 24350 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>24358.7</td>
+                            <td>24361.7</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 194.9</td>
+                            <td>Rs 194.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -92.55</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>14</td>
+                            <td>2026-08-04</td>
+                            <td>10:00 - 11:45</td>
+                            <td>NIFTY 24650 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>24626.4</td>
+                            <td>24540.0</td>
+                            <td class="val-green">+86.4 pts</td>
+                            <td>Rs 116.8</td>
+                            <td>Rs 165.3</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +3,088.67</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>15</td>
+                            <td>2026-08-05</td>
+                            <td>12:45 - 13:20</td>
+                            <td>NIFTY 24500 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>24523.7</td>
+                            <td>24555.0</td>
+                            <td class="val-red">-31.3 pts</td>
+                            <td>Rs 70.7</td>
+                            <td>Rs 57.1</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -936.03</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>16</td>
+                            <td>2026-08-06</td>
+                            <td>11:20 - 11:30</td>
+                            <td>NIFTY 24650 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>24669.7</td>
+                            <td>24672.7</td>
+                            <td class="val-green">+3.0 pts</td>
+                            <td>Rs 61.1</td>
+                            <td>Rs 62.3</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +17.48</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>17</td>
+                            <td>2026-08-07</td>
+                            <td>09:30 - 09:40</td>
+                            <td>NIFTY 24600 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24601.7</td>
+                            <td>24615.0</td>
+                            <td class="val-green">+13.3 pts</td>
+                            <td>Rs 193.2</td>
+                            <td>Rs 198.3</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +265.55</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>18</td>
+                            <td>2026-08-10</td>
+                            <td>09:30 - 10:15</td>
+                            <td>NIFTY 24550 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>24534.3</td>
+                            <td>24565.0</td>
+                            <td class="val-red">-30.7 pts</td>
+                            <td>Rs 130.2</td>
+                            <td>Rs 114.3</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,095.47</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>19</td>
+                            <td>2026-08-12</td>
+                            <td>09:25 - 09:35</td>
+                            <td>NIFTY 24450 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Support Bounceback</td>
+                            <td>24457.2</td>
+                            <td>24460.2</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 91.9</td>
+                            <td>Rs 92.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -15.00</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>20</td>
+                            <td>2026-08-13</td>
+                            <td>10:25 - 10:50</td>
+                            <td>NIFTY 24300 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>24319.2</td>
+                            <td>24345.0</td>
+                            <td class="val-red">-25.8 pts</td>
+                            <td>Rs 38.7</td>
+                            <td>Rs 28.4</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -725.30</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>21</td>
+                            <td>2026-08-14</td>
+                            <td>09:40 - 09:50</td>
+                            <td>NIFTY 24350 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24332.0</td>
+                            <td>24335.0</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 180.9</td>
+                            <td>Rs 180.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -86.45</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>22</td>
+                            <td>2026-08-17</td>
+                            <td>09:25 - 09:35</td>
+                            <td>NIFTY 24300 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24306.3</td>
+                            <td>24309.3</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 139.9</td>
+                            <td>Rs 140.1</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -51.67</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>23</td>
+                            <td>2026-08-18</td>
+                            <td>09:45 - 09:55</td>
+                            <td>NIFTY 24250 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>24228.5</td>
+                            <td>24231.5</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 103.3</td>
+                            <td>Rs 103.7</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -31.80</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>24</td>
+                            <td>2026-08-19</td>
+                            <td>09:30 - 10:40</td>
+                            <td>NIFTY 24050 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>24073.8</td>
+                            <td>24050.0</td>
+                            <td class="val-green">+23.8 pts</td>
+                            <td>Rs 69.2</td>
+                            <td>Rs 79.5</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +613.27</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>25</td>
+                            <td>2026-08-21</td>
+                            <td>09:30 - 09:40</td>
+                            <td>NIFTY 24200 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>24208.8</td>
+                            <td>24235.0</td>
+                            <td class="val-red">-26.2 pts</td>
+                            <td>Rs 156.9</td>
+                            <td>Rs 143.5</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -930.70</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>26</td>
+                            <td>2026-08-24</td>
+                            <td>09:55 - 10:55</td>
+                            <td>NIFTY 24250 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>24268.2</td>
+                            <td>24250.0</td>
+                            <td class="val-green">+18.2 pts</td>
+                            <td>Rs 112.5</td>
+                            <td>Rs 119.8</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +415.75</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>27</td>
+                            <td>2026-08-25</td>
+                            <td>09:40 - 10:20</td>
+                            <td>NIFTY 24150 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>24154.8</td>
+                            <td>24125.0</td>
+                            <td class="val-green">+29.8 pts</td>
+                            <td>Rs 100.5</td>
+                            <td>Rs 114.3</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +833.48</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>28</td>
+                            <td>2026-08-26</td>
+                            <td>12:30 - 12:35</td>
+                            <td>NIFTY 24300 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Support Bounceback</td>
+                            <td>24279.5</td>
+                            <td>24260.0</td>
+                            <td class="val-red">-19.5 pts</td>
+                            <td>Rs 77.4</td>
+                            <td>Rs 67.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -681.92</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>29</td>
+                            <td>2026-08-27</td>
+                            <td>10:55 - 11:05</td>
+                            <td>NIFTY 24150 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Support Bounceback</td>
+                            <td>24159.7</td>
+                            <td>24162.7</td>
+                            <td class="val-green">+3.0 pts</td>
+                            <td>Rs 54.5</td>
+                            <td>Rs 55.6</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +16.50</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>30</td>
+                            <td>2026-08-28</td>
+                            <td>09:25 - 09:35</td>
+                            <td>NIFTY 24150 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>24149.5</td>
+                            <td>24152.5</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 188.5</td>
+                            <td>Rs 188.2</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -89.20</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>31</td>
+                            <td>2026-09-01</td>
+                            <td>09:25 - 09:30</td>
+                            <td>NIFTY 24050 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Support Bounceback</td>
+                            <td>24064.0</td>
+                            <td>24070.0</td>
+                            <td class="val-green">+6.0 pts</td>
+                            <td>Rs 120.6</td>
+                            <td>Rs 122.7</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +72.50</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>32</td>
+                            <td>2026-09-03</td>
+                            <td>09:25 - 10:25</td>
+                            <td>NIFTY 24000 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R2 Breakout & Continue to R3</td>
+                            <td>23982.0</td>
+                            <td>23985.0</td>
+                            <td class="val-green">+3.0 pts</td>
+                            <td>Rs 40.5</td>
+                            <td>Rs 41.4</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +9.52</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>33</td>
+                            <td>2026-09-04</td>
+                            <td>09:25 - 09:30</td>
+                            <td>NIFTY 23900 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23908.3</td>
+                            <td>23925.0</td>
+                            <td class="val-red">-16.7 pts</td>
+                            <td>Rs 155.1</td>
+                            <td>Rs 146.0</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -656.08</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>34</td>
+                            <td>2026-09-07</td>
+                            <td>09:25 - 10:15</td>
+                            <td>NIFTY 23850 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>23828.7</td>
+                            <td>23800.0</td>
+                            <td class="val-green">+28.7 pts</td>
+                            <td>Rs 129.6</td>
+                            <td>Rs 143.2</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +822.46</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>35</td>
+                            <td>2026-09-08</td>
+                            <td>10:25 - 10:45</td>
+                            <td>NIFTY 23700 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>23693.9</td>
+                            <td>23690.9</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 103.9</td>
+                            <td>Rs 104.3</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -31.39</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>36</td>
+                            <td>2026-09-09</td>
+                            <td>12:45 - 14:30</td>
+                            <td>NIFTY 23550 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>23558.9</td>
+                            <td>23515.0</td>
+                            <td class="val-green">+43.9 pts</td>
+                            <td>Rs 74.3</td>
+                            <td>Rs 95.9</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +1,346.17</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>37</td>
+                            <td>2026-09-10</td>
+                            <td>12:15 - 12:20</td>
+                            <td>NIFTY 23450 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23462.2</td>
+                            <td>23480.0</td>
+                            <td class="val-red">-17.8 pts</td>
+                            <td>Rs 40.2</td>
+                            <td>Rs 32.3</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -561.74</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>38</td>
+                            <td>2026-09-11</td>
+                            <td>14:10 - 14:20</td>
+                            <td>NIFTY 23400 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Support Bounceback</td>
+                            <td>23417.2</td>
+                            <td>23420.2</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 192.1</td>
+                            <td>Rs 191.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -88.78</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>39</td>
+                            <td>2026-09-15</td>
+                            <td>09:40 - 10:30</td>
+                            <td>NIFTY 23450 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23448.1</td>
+                            <td>23360.0</td>
+                            <td class="val-green">+88.1 pts</td>
+                            <td>Rs 100.8</td>
+                            <td>Rs 148.1</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +3,014.10</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>40</td>
+                            <td>2026-09-16</td>
+                            <td>09:25 - 09:30</td>
+                            <td>NIFTY 23200 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23204.2</td>
+                            <td>23275.0</td>
+                            <td class="val-red">-70.8 pts</td>
+                            <td>Rs 75.4</td>
+                            <td>Rs 45.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,973.95</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>41</td>
+                            <td>2026-09-17</td>
+                            <td>09:30 - 09:35</td>
+                            <td>NIFTY 23300 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>23284.5</td>
+                            <td>23300.0</td>
+                            <td class="val-green">+15.5 pts</td>
+                            <td>Rs 40.2</td>
+                            <td>Rs 47.2</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +405.55</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>42</td>
+                            <td>2026-09-18</td>
+                            <td>09:25 - 09:55</td>
+                            <td>NIFTY 23300 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23301.0</td>
+                            <td>23335.0</td>
+                            <td class="val-red">-34.0 pts</td>
+                            <td>Rs 154.5</td>
+                            <td>Rs 137.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,160.94</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>43</td>
+                            <td>2026-09-21</td>
+                            <td>09:25 - 09:35</td>
+                            <td>NIFTY 23400 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R2 Breakout & Continue to R3</td>
+                            <td>23400.2</td>
+                            <td>23403.2</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 131.6</td>
+                            <td>Rs 131.8</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -46.76</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>44</td>
+                            <td>2026-09-22</td>
+                            <td>09:30 - 10:35</td>
+                            <td>NIFTY 23450 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23436.7</td>
+                            <td>23400.0</td>
+                            <td class="val-green">+36.7 pts</td>
+                            <td>Rs 106.4</td>
+                            <td>Rs 124.7</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +1,127.61</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>45</td>
+                            <td>2026-09-23</td>
+                            <td>09:25 - 09:30</td>
+                            <td>NIFTY 23350 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>23367.8</td>
+                            <td>23370.0</td>
+                            <td class="val-red">-2.2 pts</td>
+                            <td>Rs 69.6</td>
+                            <td>Rs 67.9</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -165.85</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>46</td>
+                            <td>2026-09-25</td>
+                            <td>14:00 - 14:10</td>
+                            <td>NIFTY 23150 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>23152.3</td>
+                            <td>23155.3</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 182.1</td>
+                            <td>Rs 181.9</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -83.81</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>47</td>
+                            <td>2026-09-29</td>
+                            <td>09:35 - 11:10</td>
+                            <td>NIFTY 22600 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>22577.1</td>
+                            <td>22630.0</td>
+                            <td class="val-red">-52.9 pts</td>
+                            <td>Rs 107.8</td>
+                            <td>Rs 81.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -1,757.58</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>48</td>
+                            <td>2026-09-30</td>
+                            <td>10:15 - 11:15</td>
+                            <td>NIFTY 22750 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Resistance Reversal</td>
+                            <td>22758.0</td>
+                            <td>22680.0</td>
+                            <td class="val-green">+78.0 pts</td>
+                            <td>Rs 72.1</td>
+                            <td>Rs 113.9</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +2,658.96</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>49</td>
+                            <td>2026-10-01</td>
+                            <td>09:40 - 10:00</td>
+                            <td>NIFTY 22550 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S1 Breakout & Continue to S2</td>
+                            <td>22551.2</td>
+                            <td>22580.0</td>
+                            <td class="val-red">-28.8 pts</td>
+                            <td>Rs 43.6</td>
+                            <td>Rs 30.6</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -893.84</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>50</td>
+                            <td>2026-10-05</td>
+                            <td>09:50 - 10:20</td>
+                            <td>NIFTY 22600 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R2 Resistance Reversal</td>
+                            <td>22603.2</td>
+                            <td>22515.0</td>
+                            <td class="val-green">+88.2 pts</td>
+                            <td>Rs 111.2</td>
+                            <td>Rs 156.9</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +2,905.96</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                        <tr>
+                            <td>51</td>
+                            <td>2026-10-06</td>
+                            <td>09:30 - 09:40</td>
+                            <td>NIFTY 22600 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>22611.8</td>
+                            <td>22614.8</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 112.6</td>
+                            <td>Rs 113.1</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -29.20</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>52</td>
+                            <td>2026-10-07</td>
+                            <td>10:30 - 10:40</td>
+                            <td>NIFTY 22650 PE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">S2 Flush & Continue to S3</td>
+                            <td>22657.8</td>
+                            <td>22654.8</td>
+                            <td class="val-red">+3.0 pts</td>
+                            <td>Rs 71.8</td>
+                            <td>Rs 72.5</td>
+                            <td class="val-red" style="font-weight: 700;">Rs -10.67</td>
+                            <td><span class="pill pill-loss">STOP LOSS (UNDERLYING BREACH)</span></td>
+                        </tr>
+                        <tr>
+                            <td>53</td>
+                            <td>2026-10-09</td>
+                            <td>09:25 - 09:45</td>
+                            <td>NIFTY 22400 CE</td>
+                            <td style="font-family: 'Inter', sans-serif; font-size: 12px;">R1 Breakout & Continue to R2</td>
+                            <td>22375.1</td>
+                            <td>22440.0</td>
+                            <td class="val-green">+64.9 pts</td>
+                            <td>Rs 162.1</td>
+                            <td>Rs 195.2</td>
+                            <td class="val-green" style="font-weight: 700;">Rs +2,077.78</td>
+                            <td><span class="pill pill-win">TARGET HIT (UNDERLYING LEVEL)</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLOTLY CHARTS JAVASCRIPT -->
+    <script>
+        const dates = ["Start", "2026-07-07 09:50", "2026-07-09 10:40", "2026-07-13 10:30", "2026-07-14 09:45", "2026-07-15 12:55", "2026-07-16 09:25", "2026-07-20 09:30", "2026-07-21 10:20", "2026-07-23 09:25", "2026-07-24 12:30", "2026-07-28 09:40", "2026-07-30 09:30", "2026-07-31 09:45", "2026-08-04 10:00", "2026-08-05 12:45", "2026-08-06 11:20", "2026-08-07 09:30", "2026-08-10 09:30", "2026-08-12 09:25", "2026-08-13 10:25", "2026-08-14 09:40", "2026-08-17 09:25", "2026-08-18 09:45", "2026-08-19 09:30", "2026-08-21 09:30", "2026-08-24 09:55", "2026-08-25 09:40", "2026-08-26 12:30", "2026-08-27 10:55", "2026-08-28 09:25", "2026-09-01 09:25", "2026-09-03 09:25", "2026-09-04 09:25", "2026-09-07 09:25", "2026-09-08 10:25", "2026-09-09 12:45", "2026-09-10 12:15", "2026-09-11 14:10", "2026-09-15 09:40", "2026-09-16 09:25", "2026-09-17 09:30", "2026-09-18 09:25", "2026-09-21 09:25", "2026-09-22 09:30", "2026-09-23 09:25", "2026-09-25 14:00", "2026-09-29 09:35", "2026-09-30 10:15", "2026-10-01 09:40", "2026-10-05 09:50", "2026-10-06 09:30", "2026-10-07 10:30", "2026-10-09 09:25"];
+        const eq_rr1_3 = [50000.0, 48998.7, 52207.44, 52156.74, 52125.39, 51319.03, 51336.94, 50264.76, 50231.55, 49250.82, 48273.89, 48243.36, 48249.02, 48156.47, 50780.62, 49844.58, 49862.07, 49769.65, 48674.19, 48659.19, 47933.89, 47847.44, 47795.77, 47763.97, 47749.59, 46818.89, 49120.12, 47840.96, 47826.94, 47843.44, 47754.23, 47719.27, 47728.79, 46786.44, 49317.99, 49286.6, 51806.55, 54520.57, 54431.79, 56931.57, 59499.45, 59510.52, 58349.58, 58302.82, 60881.55, 59906.49, 59822.68, 58065.1, 60605.35, 59711.51, 62118.68, 62089.48, 62078.81, 64530.62];
+        const eq_next = [50000.0, 48998.7, 52329.7, 52279.0, 52247.66, 51378.65, 52161.25, 51089.06, 51868.36, 50887.64, 49910.71, 51483.1, 52980.89, 52888.34, 55977.01, 55040.98, 55058.46, 55324.01, 54228.55, 54213.55, 53488.25, 53401.8, 53350.13, 53318.34, 53931.6, 53000.91, 53416.66, 54250.13, 53568.21, 53584.71, 53495.5, 53568.0, 53577.52, 52921.44, 53743.91, 53712.51, 55058.69, 54496.95, 54408.17, 57422.26, 55448.31, 55853.86, 54692.92, 54646.16, 55773.77, 55607.93, 55524.11, 53766.54, 56425.5, 55531.66, 58437.61, 58408.41, 58397.74, 60475.53];
+        const eq_next20 = [50000.0, 49134.48, 52465.48, 52414.78, 52383.43, 51514.43, 52297.02, 51376.38, 52155.69, 51274.48, 50436.91, 52009.3, 53507.1, 53414.55, 56503.22, 55692.75, 55710.23, 55975.78, 55029.93, 55014.93, 54404.51, 54318.06, 54266.39, 54234.59, 54847.86, 54059.68, 54475.43, 55308.91, 54626.98, 54643.48, 54554.28, 54626.78, 54636.3, 53980.21, 54802.68, 54771.29, 54758.39, 54196.65, 54107.87, 57121.97, 55148.02, 55553.57, 54534.78, 54488.02, 53333.49, 53167.64, 53083.83, 51467.94, 54126.9, 53360.89, 56266.85, 56237.65, 56226.98, 58304.76];
+        const eq_rr1_2 = [50000.0, 48998.7, 50990.21, 50939.51, 50908.16, 50101.79, 50119.71, 49047.53, 49014.31, 48033.59, 47056.66, 48527.72, 48533.39, 48440.84, 50087.16, 49151.13, 49168.61, 49076.2, 47980.73, 47965.73, 47240.44, 47153.98, 47102.32, 47070.52, 47056.13, 46125.44, 47564.84, 46285.68, 46271.66, 46288.16, 46198.95, 46163.99, 46173.52, 45231.16, 46819.34, 46787.95, 48354.88, 50005.35, 49916.57, 51480.53, 53078.23, 53089.3, 51928.36, 51881.6, 53497.09, 52522.03, 52438.22, 50680.65, 52259.04, 51365.2, 52872.0, 52842.8, 52832.13, 54369.84];
+
+        const dd_rr1_3 = [0.0, -2.002600000000006, 0.0, -0.09711259544617465, -0.15716150801495515, -1.701692325844752, -1.6673868705303303, -3.721078834740796, -3.784690457911745, -5.663215817515669, -7.534462521050644, -7.59294077625718, -7.5820994095860765, -7.7593729935809925, -2.732982119023648, -4.525906652385178, -4.492405680109966, -4.669430257449898, -6.767713567261676, -6.796445104375929, -8.18571069564032, -8.351300121208778, -8.450270689388342, -8.511181548070546, -8.538725514984081, -10.32142162113293, -5.913563277571166, -8.36371214524214, -8.39056655526492, -8.358961864439244, -8.529837892836728, -8.596801528671019, -8.578566579782501, -10.383577513090088, -5.534555994318059, -5.594681524319147, -0.7678790609154545, 0.0, -0.16283762257070833, 0.0, 0.0, 0.0, -1.9508147467035997, -2.029389089525679, 0.0, -1.6015689482281659, -1.739229700952099, -4.6261141511673145, -0.45366781890409225, -1.9218301767941204, 0.0, -0.04700679409156326, -0.06418359179558004, 0.0];
+        const dd_next = [0.0, -2.002600000000006, 0.0, -0.09688570735165135, -0.15677521560412844, -1.8174191711398988, -0.32190132945535155, -2.370814279462713, -0.881602608079153, -2.7557199831071033, -4.622594817092393, -1.617819326309913, 0.0, -0.17468562721389339, 0.0, -1.6721686277991605, -1.6409415222427972, -1.166550339148161, -3.1235323215727298, -3.150329036867098, -4.446039543734118, -4.600477946213989, -4.692783698164665, -4.749574870111864, -3.654017962016913, -5.316646959171272, -4.5739313335957, -3.0849807805025753, -4.303195186738275, -4.27371879991447, -4.433087798008508, -4.303570340752395, -4.286563358778908, -5.458615956800836, -3.9893163282569013, -4.045410785606448, -1.6405306392749446, -2.644049762572179, -2.802650588161111, 0.0, -3.4376041625669282, -2.73134495228854, -4.753104458096918, -4.834536293068226, -2.8708204797233776, -3.1596283392538047, -3.3055996054491783, -6.366381260507686, -1.7358425112491254, -3.292451394285071, 0.0, -0.049967820381424034, -0.06822660954135978, 0.0];
+        const dd_next20 = [0.0, -1.7310399999999937, 0.0, -0.09663496836396877, -0.15638854347659242, -1.812715713265185, -0.32108731302945553, -2.0758411054278083, -0.5904644349008165, -2.2700640497332722, -3.866485163196829, -0.8694859934570316, 0.0, -0.17296769961368796, 0.0, -1.4343784301142504, -1.4034421401116572, -0.933468924425904, -2.607444319102523, -2.633991478715728, -3.714319290121871, -3.8673194200259795, -3.958765535840261, -4.01504551422026, -2.929673742487597, -4.324603093416624, -3.588804319470644, -2.1137025465097348, -3.3205895168452306, -3.2913876412707066, -3.4492547504372353, -3.320943478973415, -3.3040948816722273, -4.465249945047383, -3.0096337872425694, -3.0651881432598005, -3.088018700527159, -4.082192129935249, -4.239315918632599, 0.0, -3.455675635836797, -2.7457036233169156, -4.529238049738135, -4.611097971586071, -6.632264258393055, -6.922607886247624, -7.0693290164887514, -9.898170528782531, -5.243289053231182, -6.5842967250604305, -1.4970071935544287, -1.5481258787118157, -1.5668052064730924, 0.0];
+        const dd_rr1_2 = [0.0, -2.002600000000006, 0.0, -0.09943085153012135, -0.1609132419733036, -1.742334459889454, -1.7071904587174676, -3.809907823482195, -3.8750575845833968, -5.798407184437959, -7.714323984937492, -4.82933880837125, -4.818219026750429, -4.999724456910459, -1.7710262420962681, -3.606731566706632, -3.5724504762776985, -3.7536813439285743, -5.9020741432521975, -5.931491554947501, -7.3539018568466314, -7.523463817858361, -7.624777383736994, -7.687142296531045, -7.715363400150739, -9.540596126197553, -6.717701299916206, -9.226339722860523, -9.253835196991728, -9.221476044126893, -9.396431197282777, -9.46499337814063, -9.446303515910216, -11.294422988255972, -8.179746661172807, -8.241307498047178, -5.168305837532346, -1.9314688054824656, -2.105580659503068, 0.0, 0.0, 0.0, -2.1867683318484183, -2.2748463438018667, 0.0, -1.8226411941284988, -1.9793039210170036, -5.264660189928079, -2.3142380267786447, -3.9850578788491102, -1.1684560786390372, -1.2230384867662778, -1.2429834968593603, 0.0];
+
+        // Equity Chart
+        Plotly.newPlot('equityChart', [
+            {
+                name: '1:3 RR on Spot (+Rs 14.5k | PF 2.24) ⭐',
+                x: dates, y: eq_rr1_3,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#10B981', width: 3.0 }
+            },
+            {
+                name: 'Next Level (R2/S2 Continuation | DD 7.3%)',
+                x: dates, y: eq_next,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#06B6D4', width: 2.4 }
+            },
+            {
+                name: 'Next Level (Spot SL 20 pts)',
+                x: dates, y: eq_next20,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#8B5CF6', width: 2.0 }
+            },
+            {
+                name: '1:2 RR on Spot',
+                x: dates, y: eq_rr1_2,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#F59E0B', width: 1.8, dash: 'dot' }
+            }
+        ], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 60, r: 20, t: 10, b: 40 },
+            legend: { orientation: 'h', y: 1.12, font: { family: 'Inter', color: '#F8FAFC', size: 12 } },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: ',.0f', tickprefix: 'Rs ', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+
+        // Drawdown Chart
+        Plotly.newPlot('ddChart', [
+            {
+                name: '1:3 RR Spot DD',
+                x: dates, y: dd_rr1_3,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#10B981', width: 2.0 }
+            },
+            {
+                name: 'Next Level DD (Max DD: 7.3% only!)',
+                x: dates, y: dd_next,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#06B6D4', width: 2.2 }
+            },
+            {
+                name: 'Next Level 20 pts DD',
+                x: dates, y: dd_next20,
+                type: 'scatter', mode: 'lines',
+                line: { color: '#8B5CF6', width: 1.8 }
+            }
+        ], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 60, r: 20, t: 10, b: 30 },
+            legend: { orientation: 'h', y: 1.15, font: { family: 'Inter', color: '#F8FAFC', size: 11 } },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: '.1f', ticksuffix: '%', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+Mode,Trades,Wins,Losses,Win_Rate,Net_PnL,PF,Max_DD,Avg_Trade
+Arjun Breakout (No Trail),38,20,18,52.6%,5065.32,1.2,10374.55,133.3
+Arjun Breakout + Lock +20 Trail,40,22,18,55.0%,6388.52,1.25,10374.54,159.71
+Arjun Breakout + Bot Dynamic Trail,40,22,18,55.0%,2182.14,1.08,10374.55,54.55
+Arjun Breakout + EMA Filter + Lock +20,32,18,14,56.2%,6924.84,1.31,7557.09,216.4
+Arjun Breakout + EMA Filter + Bot Dynamic Trail,32,18,14,56.2%,3364.4,1.15,7557.08,105.14
+Arjun Bounce / Mean Reversion (Exact Rules),50,21,29,42.0%,-3043.45,0.93,15979.92,-60.87
+Arjun Hybrid (Bounce + Breakout with Exact Rules),48,23,25,47.9%,-8170.06,0.8,13518.14,-170.21

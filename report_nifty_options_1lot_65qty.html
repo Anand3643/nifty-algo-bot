@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Options (1 Lot = 65 Qty) Fixed SL/TP Backtest Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --bg-base: #0B0F19;
+            --bg-card: #111827;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-primary: #F9FAFB;
+            --text-secondary: #94A3B8;
+            --accent: #6366F1;
+            --green: #10B981;
+            --red: #EF4444;
+            --amber: #F59E0B;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            padding: 24px 32px;
+            min-height: 100vh;
+        }
+        .header {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; font-weight: 800; }
+        .header .sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px; }
+        .kpi-val { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .table-wrap { overflow-x: auto; max-height: 480px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .pill-win { background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .pill-loss { background: rgba(239, 68, 68, 0.15); color: #F87171; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .pill-ce { background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .pill-pe { background: rgba(239, 68, 68, 0.15); color: #F87171; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>NIFTY Options (1 Lot = 65 Qty) Fixed SL/TP Backtest</h1>
+            <div class="sub">Fixed SL: 25 pts | Fixed TP: 50 pts | 1 Lot = 65 Qty | Model: FORMULA</div>
+        </div>
+        <div>
+            <span class="badge">WIN RATE: 56.9%</span>
+        </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label">Total Net PnL</div>
+            <div class="kpi-val" style="color: #10B981;">Rs +7,120.06</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">ROI: +14.24%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Win Rate</div>
+            <div class="kpi-val" style="color: #10B981;">56.9%</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">29 Wins / 22 Losses</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Profit Factor</div>
+            <div class="kpi-val" style="color: #A78BFA;">1.33</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">RR: 1.01 : 1</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Total Option Points</div>
+            <div class="kpi-val" style="color: #60A5FA;">+157.0 pts</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Avg +3.1 pts/trade</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Max Drawdown</div>
+            <div class="kpi-val" style="color: #EF4444;">Rs 7,305.86</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Peak DD: -14.61%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Sharpe Ratio</div>
+            <div class="kpi-val" style="color: #34D399;">1.27</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Annualized</div>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="card">
+        <div class="card-title">
+            <span>📈 Cumulative Equity Curve (Nifty Options 1 Lot = 65 Qty)</span>
+            <span style="font-size: 12px; color: var(--text-secondary);">Start: Rs 50,000 &rarr; End: Rs 57,120</span>
+        </div>
+        <div id="equityChart" style="height: 380px;"></div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-title">📊 Daily PnL Distribution (Rs)</div>
+            <div id="dailyChart" style="height: 300px;"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">📉 Underwater Drawdown Curve (%)</div>
+            <div id="ddChart" style="height: 300px;"></div>
+        </div>
+    </div>
+
+    <!-- TRADE LOG -->
+    <div class="card">
+        <div class="card-title">
+            <span>📋 Trade Execution Journal (51 Completed Trades)</span>
+            <span style="font-size: 12px; color: var(--text-secondary);">Exported to: trades_nifty_options_1lot_65qty.csv</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Exit Time</th>
+                        <th>Instrument</th>
+                        <th>Playbook</th>
+                        <th>Entry Prem</th>
+                        <th>Exit Prem</th>
+                        <th>Prem Pts</th>
+                        <th>Gross PnL</th>
+                        <th>Costs</th>
+                        <th>Net PnL</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>1</td>
+                        <td>2026-07-07</td>
+                        <td>09:55</td>
+                        <td>12:30</td>
+                        <td><span class="pill-ce">NIFTY 24500 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 103.0</td>
+                        <td>Rs 105.95</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.0</td>
+                        <td>Rs +192</td>
+                        <td>Rs 60</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +132</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>2</td>
+                        <td>2026-07-13</td>
+                        <td>10:35</td>
+                        <td>12:10</td>
+                        <td><span class="pill-pe">NIFTY 24150 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 128.25</td>
+                        <td>Rs 102.1</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.1</td>
+                        <td>Rs -1,700</td>
+                        <td>Rs 61</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,761</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>3</td>
+                        <td>2026-07-14</td>
+                        <td>09:35</td>
+                        <td>10:30</td>
+                        <td><span class="pill-pe">NIFTY 24100 PE</span></td>
+                        <td>Break Support (CPR Bot Breakdown)</td>
+                        <td>Rs 100.27</td>
+                        <td>Rs 103.25</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.0</td>
+                        <td>Rs +194</td>
+                        <td>Rs 60</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +134</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>4</td>
+                        <td>2026-07-15</td>
+                        <td>12:55</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24050 PE</span></td>
+                        <td>Break Support (CPR Bot Breakdown)</td>
+                        <td>Rs 78.31</td>
+                        <td>Rs 66.76</td>
+                        <td style="color: #F87171; font-weight: bold;">-11.6</td>
+                        <td>Rs -751</td>
+                        <td>Rs 56</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -806</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>5</td>
+                        <td>2026-07-16</td>
+                        <td>09:40</td>
+                        <td>11:15</td>
+                        <td><span class="pill-ce">NIFTY 24150 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 44.93</td>
+                        <td>Rs 48.47</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.5</td>
+                        <td>Rs +230</td>
+                        <td>Rs 53</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +177</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>6</td>
+                        <td>2026-07-20</td>
+                        <td>09:30</td>
+                        <td>10:30</td>
+                        <td><span class="pill-pe">NIFTY 24200 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 130.43</td>
+                        <td>Rs 104.26</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.2</td>
+                        <td>Rs -1,701</td>
+                        <td>Rs 61</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,762</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>7</td>
+                        <td>2026-07-21</td>
+                        <td>09:40</td>
+                        <td>10:35</td>
+                        <td><span class="pill-ce">NIFTY 24250 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 107.09</td>
+                        <td>Rs 81.15</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.9</td>
+                        <td>Rs -1,686</td>
+                        <td>Rs 58</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,744</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>8</td>
+                        <td>2026-07-23</td>
+                        <td>09:25</td>
+                        <td>13:05</td>
+                        <td><span class="pill-pe">NIFTY 23900 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 37.13</td>
+                        <td>Rs 86.51</td>
+                        <td style="color: #34D399; font-weight: bold;">+49.4</td>
+                        <td>Rs +3,210</td>
+                        <td>Rs 56</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,154</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>9</td>
+                        <td>2026-07-24</td>
+                        <td>12:30</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 23750 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 150.31</td>
+                        <td>Rs 146.38</td>
+                        <td style="color: #F87171; font-weight: bold;">-3.9</td>
+                        <td>Rs -255</td>
+                        <td>Rs 65</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -321</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>10</td>
+                        <td>2026-07-28</td>
+                        <td>10:10</td>
+                        <td>13:10</td>
+                        <td><span class="pill-ce">NIFTY 24000 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 105.92</td>
+                        <td>Rs 108.85</td>
+                        <td style="color: #34D399; font-weight: bold;">+2.9</td>
+                        <td>Rs +190</td>
+                        <td>Rs 60</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +130</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>11</td>
+                        <td>2026-07-30</td>
+                        <td>12:30</td>
+                        <td>13:10</td>
+                        <td><span class="pill-ce">NIFTY 24300 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 53.3</td>
+                        <td>Rs 27.89</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.4</td>
+                        <td>Rs -1,651</td>
+                        <td>Rs 52</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,703</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>12</td>
+                        <td>2026-07-31</td>
+                        <td>09:45</td>
+                        <td>14:40</td>
+                        <td><span class="pill-ce">NIFTY 24350 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 194.93</td>
+                        <td>Rs 196.97</td>
+                        <td style="color: #34D399; font-weight: bold;">+2.0</td>
+                        <td>Rs +133</td>
+                        <td>Rs 71</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +61</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>13</td>
+                        <td>2026-08-04</td>
+                        <td>10:00</td>
+                        <td>11:45</td>
+                        <td><span class="pill-pe">NIFTY 24650 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 116.8</td>
+                        <td>Rs 165.39</td>
+                        <td style="color: #34D399; font-weight: bold;">+48.6</td>
+                        <td>Rs +3,158</td>
+                        <td>Rs 65</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,093</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>14</td>
+                        <td>2026-08-05</td>
+                        <td>10:00</td>
+                        <td>11:10</td>
+                        <td><span class="pill-ce">NIFTY 24600 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 95.02</td>
+                        <td>Rs 98.06</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.0</td>
+                        <td>Rs +197</td>
+                        <td>Rs 59</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +138</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>15</td>
+                        <td>2026-08-06</td>
+                        <td>11:20</td>
+                        <td>13:15</td>
+                        <td><span class="pill-ce">NIFTY 24650 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 61.15</td>
+                        <td>Rs 35.67</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.5</td>
+                        <td>Rs -1,656</td>
+                        <td>Rs 53</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,709</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>16</td>
+                        <td>2026-08-07</td>
+                        <td>09:45</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24600 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 158.45</td>
+                        <td>Rs 182.0</td>
+                        <td style="color: #34D399; font-weight: bold;">+23.6</td>
+                        <td>Rs +1,531</td>
+                        <td>Rs 68</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,462</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>17</td>
+                        <td>2026-08-10</td>
+                        <td>09:30</td>
+                        <td>10:20</td>
+                        <td><span class="pill-pe">NIFTY 24550 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 130.22</td>
+                        <td>Rs 104.05</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.2</td>
+                        <td>Rs -1,701</td>
+                        <td>Rs 61</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,762</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>18</td>
+                        <td>2026-08-12</td>
+                        <td>09:45</td>
+                        <td>10:55</td>
+                        <td><span class="pill-pe">NIFTY 24400 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 80.54</td>
+                        <td>Rs 129.49</td>
+                        <td style="color: #34D399; font-weight: bold;">+49.0</td>
+                        <td>Rs +3,182</td>
+                        <td>Rs 61</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,121</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>19</td>
+                        <td>2026-08-13</td>
+                        <td>10:25</td>
+                        <td>12:00</td>
+                        <td><span class="pill-pe">NIFTY 24300 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 38.74</td>
+                        <td>Rs 13.47</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.3</td>
+                        <td>Rs -1,642</td>
+                        <td>Rs 50</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,692</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>20</td>
+                        <td>2026-08-14</td>
+                        <td>09:50</td>
+                        <td>13:45</td>
+                        <td><span class="pill-pe">NIFTY 24300 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 150.24</td>
+                        <td>Rs 123.87</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.4</td>
+                        <td>Rs -1,714</td>
+                        <td>Rs 63</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,777</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>21</td>
+                        <td>2026-08-17</td>
+                        <td>09:30</td>
+                        <td>12:15</td>
+                        <td><span class="pill-pe">NIFTY 24300 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 127.3</td>
+                        <td>Rs 130.01</td>
+                        <td style="color: #34D399; font-weight: bold;">+2.7</td>
+                        <td>Rs +176</td>
+                        <td>Rs 63</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +113</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>22</td>
+                        <td>2026-08-18</td>
+                        <td>10:15</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24200 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 96.4</td>
+                        <td>Rs 119.28</td>
+                        <td style="color: #34D399; font-weight: bold;">+22.9</td>
+                        <td>Rs +1,488</td>
+                        <td>Rs 61</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,427</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>23</td>
+                        <td>2026-08-19</td>
+                        <td>09:30</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24050 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 69.15</td>
+                        <td>Rs 80.15</td>
+                        <td style="color: #34D399; font-weight: bold;">+11.0</td>
+                        <td>Rs +715</td>
+                        <td>Rs 57</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +659</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>24</td>
+                        <td>2026-08-21</td>
+                        <td>09:25</td>
+                        <td>15:10</td>
+                        <td><span class="pill-ce">NIFTY 24250 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 179.47</td>
+                        <td>Rs 179.7</td>
+                        <td style="color: #34D399; font-weight: bold;">+0.2</td>
+                        <td>Rs +15</td>
+                        <td>Rs 69</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -54</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>25</td>
+                        <td>2026-08-24</td>
+                        <td>11:05</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24200 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 110.56</td>
+                        <td>Rs 128.29</td>
+                        <td style="color: #34D399; font-weight: bold;">+17.7</td>
+                        <td>Rs +1,152</td>
+                        <td>Rs 62</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,090</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>26</td>
+                        <td>2026-08-25</td>
+                        <td>09:40</td>
+                        <td>14:30</td>
+                        <td><span class="pill-pe">NIFTY 24150 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 100.51</td>
+                        <td>Rs 74.63</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.9</td>
+                        <td>Rs -1,682</td>
+                        <td>Rs 57</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,739</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>27</td>
+                        <td>2026-08-26</td>
+                        <td>13:10</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24250 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 71.89</td>
+                        <td>Rs 67.92</td>
+                        <td style="color: #F87171; font-weight: bold;">-4.0</td>
+                        <td>Rs -258</td>
+                        <td>Rs 56</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -314</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>28</td>
+                        <td>2026-08-27</td>
+                        <td>11:15</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 24150 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 49.13</td>
+                        <td>Rs 54.92</td>
+                        <td style="color: #34D399; font-weight: bold;">+5.8</td>
+                        <td>Rs +376</td>
+                        <td>Rs 54</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +323</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>29</td>
+                        <td>2026-08-28</td>
+                        <td>09:25</td>
+                        <td>11:35</td>
+                        <td><span class="pill-ce">NIFTY 24150 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 188.49</td>
+                        <td>Rs 161.74</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.8</td>
+                        <td>Rs -1,739</td>
+                        <td>Rs 68</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,807</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>30</td>
+                        <td>2026-09-01</td>
+                        <td>09:35</td>
+                        <td>11:05</td>
+                        <td><span class="pill-pe">NIFTY 24050 PE</span></td>
+                        <td>Break Support (CPR Bot Breakdown)</td>
+                        <td>Rs 106.91</td>
+                        <td>Rs 80.97</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.9</td>
+                        <td>Rs -1,686</td>
+                        <td>Rs 58</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,744</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>31</td>
+                        <td>2026-09-03</td>
+                        <td>09:25</td>
+                        <td>12:20</td>
+                        <td><span class="pill-ce">NIFTY 24000 CE</span></td>
+                        <td>Break Resistance (R2 Expansion)</td>
+                        <td>Rs 40.49</td>
+                        <td>Rs 15.21</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.3</td>
+                        <td>Rs -1,643</td>
+                        <td>Rs 50</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,693</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>32</td>
+                        <td>2026-09-04</td>
+                        <td>09:40</td>
+                        <td>11:35</td>
+                        <td><span class="pill-ce">NIFTY 23900 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 192.44</td>
+                        <td>Rs 240.28</td>
+                        <td style="color: #34D399; font-weight: bold;">+47.8</td>
+                        <td>Rs +3,109</td>
+                        <td>Rs 75</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,035</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>33</td>
+                        <td>2026-09-07</td>
+                        <td>09:25</td>
+                        <td>12:55</td>
+                        <td><span class="pill-pe">NIFTY 23850 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 129.6</td>
+                        <td>Rs 178.06</td>
+                        <td style="color: #34D399; font-weight: bold;">+48.5</td>
+                        <td>Rs +3,150</td>
+                        <td>Rs 67</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,083</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>34</td>
+                        <td>2026-09-08</td>
+                        <td>10:25</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 23700 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 103.91</td>
+                        <td>Rs 130.76</td>
+                        <td style="color: #34D399; font-weight: bold;">+26.9</td>
+                        <td>Rs +1,745</td>
+                        <td>Rs 62</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,683</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>35</td>
+                        <td>2026-09-09</td>
+                        <td>12:45</td>
+                        <td>15:00</td>
+                        <td><span class="pill-pe">NIFTY 23550 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 74.31</td>
+                        <td>Rs 123.32</td>
+                        <td style="color: #34D399; font-weight: bold;">+49.0</td>
+                        <td>Rs +3,186</td>
+                        <td>Rs 60</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,125</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>36</td>
+                        <td>2026-09-11</td>
+                        <td>14:15</td>
+                        <td>15:10</td>
+                        <td><span class="pill-pe">NIFTY 23400 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 152.82</td>
+                        <td>Rs 138.16</td>
+                        <td style="color: #F87171; font-weight: bold;">-14.7</td>
+                        <td>Rs -953</td>
+                        <td>Rs 65</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,017</td>
+                        <td><span class="pill-loss">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>37</td>
+                        <td>2026-09-15</td>
+                        <td>10:10</td>
+                        <td>10:50</td>
+                        <td><span class="pill-ce">NIFTY 23400 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 103.35</td>
+                        <td>Rs 77.45</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.9</td>
+                        <td>Rs -1,684</td>
+                        <td>Rs 58</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,741</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>38</td>
+                        <td>2026-09-16</td>
+                        <td>09:35</td>
+                        <td>09:50</td>
+                        <td><span class="pill-pe">NIFTY 23150 PE</span></td>
+                        <td>Break Support (CPR Bot Breakdown)</td>
+                        <td>Rs 76.61</td>
+                        <td>Rs 50.98</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.6</td>
+                        <td>Rs -1,666</td>
+                        <td>Rs 54</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,721</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>39</td>
+                        <td>2026-09-17</td>
+                        <td>09:30</td>
+                        <td>13:25</td>
+                        <td><span class="pill-ce">NIFTY 23300 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 40.2</td>
+                        <td>Rs 43.78</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.6</td>
+                        <td>Rs +233</td>
+                        <td>Rs 52</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +180</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>40</td>
+                        <td>2026-09-18</td>
+                        <td>09:35</td>
+                        <td>15:10</td>
+                        <td><span class="pill-ce">NIFTY 23300 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 191.76</td>
+                        <td>Rs 203.08</td>
+                        <td style="color: #34D399; font-weight: bold;">+11.3</td>
+                        <td>Rs +736</td>
+                        <td>Rs 72</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +664</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>41</td>
+                        <td>2026-09-21</td>
+                        <td>09:25</td>
+                        <td>15:10</td>
+                        <td><span class="pill-ce">NIFTY 23400 CE</span></td>
+                        <td>Break Resistance (R2 Expansion)</td>
+                        <td>Rs 131.58</td>
+                        <td>Rs 145.67</td>
+                        <td style="color: #34D399; font-weight: bold;">+14.1</td>
+                        <td>Rs +916</td>
+                        <td>Rs 64</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +851</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>42</td>
+                        <td>2026-09-22</td>
+                        <td>09:35</td>
+                        <td>10:35</td>
+                        <td><span class="pill-ce">NIFTY 23450 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 111.18</td>
+                        <td>Rs 85.2</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.0</td>
+                        <td>Rs -1,689</td>
+                        <td>Rs 59</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,747</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>43</td>
+                        <td>2026-09-23</td>
+                        <td>09:40</td>
+                        <td>15:10</td>
+                        <td><span class="pill-ce">NIFTY 23400 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 73.78</td>
+                        <td>Rs 100.97</td>
+                        <td style="color: #34D399; font-weight: bold;">+27.2</td>
+                        <td>Rs +1,767</td>
+                        <td>Rs 58</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +1,709</td>
+                        <td><span class="pill-win">EOD EXIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>44</td>
+                        <td>2026-09-25</td>
+                        <td>09:35</td>
+                        <td>14:00</td>
+                        <td><span class="pill-pe">NIFTY 23100 PE</span></td>
+                        <td>Break Support (CPR Bot Breakdown)</td>
+                        <td>Rs 164.43</td>
+                        <td>Rs 166.78</td>
+                        <td style="color: #34D399; font-weight: bold;">+2.3</td>
+                        <td>Rs +152</td>
+                        <td>Rs 67</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +85</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>45</td>
+                        <td>2026-09-29</td>
+                        <td>09:35</td>
+                        <td>11:10</td>
+                        <td><span class="pill-pe">NIFTY 22600 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 107.75</td>
+                        <td>Rs 81.8</td>
+                        <td style="color: #F87171; font-weight: bold;">-25.9</td>
+                        <td>Rs -1,687</td>
+                        <td>Rs 58</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,745</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>46</td>
+                        <td>2026-09-30</td>
+                        <td>09:40</td>
+                        <td>10:30</td>
+                        <td><span class="pill-ce">NIFTY 22700 CE</span></td>
+                        <td>Break Resistance (CPR Top Breakout)</td>
+                        <td>Rs 89.9</td>
+                        <td>Rs 92.98</td>
+                        <td style="color: #34D399; font-weight: bold;">+3.1</td>
+                        <td>Rs +201</td>
+                        <td>Rs 58</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +142</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>47</td>
+                        <td>2026-10-01</td>
+                        <td>09:40</td>
+                        <td>12:25</td>
+                        <td><span class="pill-pe">NIFTY 22550 PE</span></td>
+                        <td>Break Support (S1 Breakdown)</td>
+                        <td>Rs 43.58</td>
+                        <td>Rs 92.9</td>
+                        <td style="color: #34D399; font-weight: bold;">+49.3</td>
+                        <td>Rs +3,206</td>
+                        <td>Rs 57</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,149</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>48</td>
+                        <td>2026-10-05</td>
+                        <td>10:30</td>
+                        <td>10:35</td>
+                        <td><span class="pill-ce">NIFTY 22550 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 116.96</td>
+                        <td>Rs 90.92</td>
+                        <td style="color: #F87171; font-weight: bold;">-26.0</td>
+                        <td>Rs -1,693</td>
+                        <td>Rs 59</td>
+                        <td style="color: #F87171; font-weight: bold;">Rs -1,752</td>
+                        <td><span class="pill-loss">STOP LOSS</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>49</td>
+                        <td>2026-10-06</td>
+                        <td>09:30</td>
+                        <td>10:10</td>
+                        <td><span class="pill-ce">NIFTY 22600 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 112.58</td>
+                        <td>Rs 115.44</td>
+                        <td style="color: #34D399; font-weight: bold;">+2.9</td>
+                        <td>Rs +186</td>
+                        <td>Rs 61</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +125</td>
+                        <td><span class="pill-win">TRAILING SL</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>50</td>
+                        <td>2026-10-07</td>
+                        <td>10:30</td>
+                        <td>13:05</td>
+                        <td><span class="pill-pe">NIFTY 22650 PE</span></td>
+                        <td>Break Support (S2 Flush)</td>
+                        <td>Rs 71.83</td>
+                        <td>Rs 120.87</td>
+                        <td style="color: #34D399; font-weight: bold;">+49.0</td>
+                        <td>Rs +3,187</td>
+                        <td>Rs 60</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,127</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                    <tr>
+                        <td>51</td>
+                        <td>2026-10-09</td>
+                        <td>09:25</td>
+                        <td>09:55</td>
+                        <td><span class="pill-ce">NIFTY 22400 CE</span></td>
+                        <td>Break Resistance (R1 Breakout)</td>
+                        <td>Rs 162.12</td>
+                        <td>Rs 210.26</td>
+                        <td style="color: #34D399; font-weight: bold;">+48.1</td>
+                        <td>Rs +3,129</td>
+                        <td>Rs 71</td>
+                        <td style="color: #34D399; font-weight: bold;">Rs +3,058</td>
+                        <td><span class="pill-win">TARGET 1:2 HIT</span></td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const eqData = [50000.0, 50132.09, 48371.55, 48505.73, 47699.37, 47876.04, 46113.83, 44369.54, 47523.54, 47202.91, 47332.75, 45629.77, 45691.27, 48784.08, 48922.29, 47213.28, 48675.73, 46913.68, 50034.34, 48342.55, 46565.12, 46678.55, 48105.54, 48764.46, 48710.46, 49800.71, 48061.48, 47747.49, 48070.31, 46263.52, 44519.37, 42826.23, 45860.96, 48943.95, 50627.29, 53752.73, 52735.42, 50994.0, 49273.12, 49453.43, 50117.61, 50968.99, 49221.56, 50930.53, 51015.44, 49270.65, 49412.8, 52561.84, 50809.97, 50934.7, 54062.05, 57120.07];
+        const labels = ["Start", "T1: 2026-07-07", "T2: 2026-07-13", "T3: 2026-07-14", "T4: 2026-07-15", "T5: 2026-07-16", "T6: 2026-07-20", "T7: 2026-07-21", "T8: 2026-07-23", "T9: 2026-07-24", "T10: 2026-07-28", "T11: 2026-07-30", "T12: 2026-07-31", "T13: 2026-08-04", "T14: 2026-08-05", "T15: 2026-08-06", "T16: 2026-08-07", "T17: 2026-08-10", "T18: 2026-08-12", "T19: 2026-08-13", "T20: 2026-08-14", "T21: 2026-08-17", "T22: 2026-08-18", "T23: 2026-08-19", "T24: 2026-08-21", "T25: 2026-08-24", "T26: 2026-08-25", "T27: 2026-08-26", "T28: 2026-08-27", "T29: 2026-08-28", "T30: 2026-09-01", "T31: 2026-09-03", "T32: 2026-09-04", "T33: 2026-09-07", "T34: 2026-09-08", "T35: 2026-09-09", "T36: 2026-09-11", "T37: 2026-09-15", "T38: 2026-09-16", "T39: 2026-09-17", "T40: 2026-09-18", "T41: 2026-09-21", "T42: 2026-09-22", "T43: 2026-09-23", "T44: 2026-09-25", "T45: 2026-09-29", "T46: 2026-09-30", "T47: 2026-10-01", "T48: 2026-10-05", "T49: 2026-10-06", "T50: 2026-10-07", "T51: 2026-10-09"];
+        const ddData = [0.0, 0.0, -3.5118025201023815, -3.2441496055719865, -4.8526203475657885, -4.500211341677548, -8.01534506141674, -11.494733213795786, -5.203353779984029, -5.842924162946315, -5.583928378010964, -8.98091422081146, -8.858238306043095, -2.6889164206000484, -2.413224742874266, -5.822238809513024, -2.9050454509277257, -6.419860013815495, -0.19498488892044996, -3.569649699424049, -7.115143214655512, -6.888880954294932, -4.042420732907796, -2.7280530295066443, -2.835768466864233, -0.661013733917731, -4.130308550870298, -4.756633924498258, -4.112695082132022, -7.71675387960087, -11.195862769734903, -14.573220466172454, -8.519752517798475, -2.370018884111952, 0.0, 0.0, -1.8925736423061765, -5.132260259153354, -8.333734863326942, -7.998291435616392, -6.762670472736924, -5.178788128528551, -8.429655572842542, -5.250337982833623, -5.09237391291568, -8.338329978775034, -8.073878294181522, -2.2154967756986608, -5.474624265595444, -5.242580237320051, 0.0, 0.0];
+        const dDates = ["2026-07-07", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-20", "2026-07-21", "2026-07-23", "2026-07-24", "2026-07-28", "2026-07-30", "2026-07-31", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-21", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-09-01", "2026-09-03", "2026-09-04", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-11", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18", "2026-09-21", "2026-09-22", "2026-09-23", "2026-09-25", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-09"];
+        const dVals = [132.09, -1760.53, 134.18, -806.37, 176.67, -1762.21, -1744.29, 3154.0, -320.63, 129.84, -1702.98, 61.49, 3092.81, 138.21, -1709.01, 1462.45, -1762.04, 3120.66, -1691.8, -1777.42, 113.42, 1426.99, 658.91, -54.0, 1090.25, -1739.23, -313.99, 322.83, -1806.79, -1744.15, -1693.14, 3034.73, 3082.99, 1683.34, 3125.44, -1017.32, -1741.41, -1720.88, 180.31, 664.18, 851.38, -1747.43, 1708.98, 84.91, -1744.79, 142.14, 3149.04, -1751.87, 124.73, 3127.35, 3058.02];
+        const dCols = ["#10B981", "#EF4444", "#10B981", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#10B981", "#EF4444", "#10B981", "#EF4444", "#10B981", "#10B981", "#10B981", "#EF4444", "#10B981", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#10B981", "#10B981", "#10B981", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#10B981", "#EF4444", "#EF4444", "#EF4444", "#10B981", "#10B981", "#10B981", "#10B981", "#EF4444", "#EF4444", "#EF4444", "#10B981", "#10B981", "#10B981", "#EF4444", "#10B981", "#10B981", "#EF4444", "#10B981", "#10B981", "#EF4444", "#10B981", "#10B981", "#10B981"];
+
+        // Equity Curve
+        Plotly.newPlot('equityChart', [{
+            x: labels,
+            y: eqData,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#10B981', width: 2.5 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(16, 185, 129, 0.08)'
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 60, r: 30, t: 10, b: 30 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: ',.0f', tickprefix: 'Rs ', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+
+        // Daily PnL
+        Plotly.newPlot('dailyChart', [{
+            x: dDates,
+            y: dVals,
+            type: 'bar',
+            marker: { color: dCols }
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 50, r: 20, t: 10, b: 40 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', font: { family: 'Inter', color: '#94A3B8', size: 10 } },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: ',.0f', tickprefix: 'Rs ', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+
+        // Drawdown Chart
+        Plotly.newPlot('ddChart', [{
+            x: labels,
+            y: ddData,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#EF4444', width: 1.8 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(239, 68, 68, 0.1)'
+        }], {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            margin: { l: 50, r: 20, t: 10, b: 30 },
+            xaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', showticklabels: false },
+            yaxis: { gridcolor: 'rgba(255, 255, 255, 0.05)', tickformat: '.1f', ticksuffix: '%', font: { family: 'JetBrains Mono', color: '#94A3B8' } }
+        }, { responsive: true, displayModeBar: false });
+    </script>
+</body>
+</html>

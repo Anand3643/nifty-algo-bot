@@ -1,0 +1,9 @@
+Setup,Trades,Win Rate (%),Net P&L (Rs),Profit Factor,Max Drawdown (Rs),Calmar Ratio
+"Setup 1: Baseline 2-Lot Staged (OTM-1, 14:00 cutoff, No Filter)",375,54.1,698465.56,2.23,29410.72,7.92
+Setup 2: 2-Lot Staged + Duplicate Level Exhaustion Filter (Recommended),375,54.1,698465.56,2.23,29410.72,7.92
+Setup 3: 2-Lot Staged + Duplicate Filter + 13:30 Cutoff (Chop Shield),357,53.5,663629.76,2.2,29410.72,7.52
+Setup 4: 2-Lot Staged + Duplicate Filter + 13:00 Cutoff (Morning Trend Only),341,54.8,687375.67,2.34,29410.72,7.79
+Setup 5: ATM 2-Lot Staged + Duplicate Filter (ATM Benchmark),378,54.0,747912.25,2.11,34655.34,7.19
+Setup 6: ITM-1 2-Lot Staged + Duplicate Filter (Higher Delta),381,53.0,752753.79,1.97,39664.26,6.33
+"Setup 7: Tighter Risk 2-Lot Staged (SL 40, T1 80, T2 160)",379,53.3,617571.71,2.09,28479.3,7.23
+Setup 8: 1-Trade Daily Max (Stop after 1 trade regardless of outcome),375,54.1,698465.56,2.23,29410.72,7.92

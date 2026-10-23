@@ -899,6 +899,7 @@ class NiftyAlgoEngine:
         self.levels = {}
         self.capital = config.INITIAL_CAPITAL
         self.trades_today = 0
+        self.executed_playbooks_today = set()
         self.current_position = None
         self.last_status_msg = "Bot Initialized"
 
@@ -913,6 +914,7 @@ class NiftyAlgoEngine:
     def reset_daily_state(self):
         """Resets daily counters and state for a fresh trading day"""
         self.trades_today = 0
+        self.executed_playbooks_today = set()
         self.current_position = None
         self.orb_high = None
         self.orb_low = None
@@ -951,8 +953,9 @@ class NiftyAlgoEngine:
                 if state.get("date") == today_str:
                     self.capital = state.get("capital", self.cfg.INITIAL_CAPITAL)
                     self.trades_today = state.get("trades_today", 0)
+                    self.executed_playbooks_today = set(state.get("executed_playbooks_today", []))
                     self.current_position = state.get("current_position", None)
-                    logger.info(f"Loaded existing state for today: Capital=Rs {self.capital:,.2f}, Trades={self.trades_today}")
+                    logger.info(f"Loaded existing state for today: Capital=Rs {self.capital:,.2f}, Trades={self.trades_today}, Executed PBs={self.executed_playbooks_today}")
             except Exception as e:
                 logger.error(f"Error loading state: {e}")
 
@@ -964,6 +967,7 @@ class NiftyAlgoEngine:
             "date": today_str,
             "capital": self.capital,
             "trades_today": self.trades_today,
+            "executed_playbooks_today": list(self.executed_playbooks_today),
             "daily_net_pnl": daily["net_pnl"],
             "daily_wins": daily["wins"],
             "daily_losses": daily["losses"],
@@ -1079,6 +1083,11 @@ class NiftyAlgoEngine:
                 logger.info("DAILY STOP-ON-LOSS ACTIVE: Trade 1 today was a loss. Skipping trade 2 to avoid choppy regime.")
                 return
 
+        # Safeguard: Do not re-enter the SAME playbook/level that already executed today
+        if hasattr(self, "executed_playbooks_today") and playbook in self.executed_playbooks_today:
+            logger.info(f"DUPLICATE PLAYBOOK FILTER: '{playbook}' was already executed today. Skipping re-entry on exhausted level.")
+            return
+
         opt = self.session.resolve_target_option(spot, opt_type, self.cfg.STRIKE_MODE)
         if not opt or opt.get("ltp", 0) <= 0:
             logger.warning(f"Could not fetch {self.cfg.STRIKE_MODE} option quote for {opt_type} at spot {spot}!")
@@ -1119,6 +1128,8 @@ class NiftyAlgoEngine:
             "unrealized_pnl": 0.0
         }
         self.trades_today += 1
+        if hasattr(self, "executed_playbooks_today"):
+            self.executed_playbooks_today.add(playbook)
         self.last_status_msg = f"Entered {opt['symbol']} 2 Lots ({playbook})"
         self._save_state()
 

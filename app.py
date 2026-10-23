@@ -140,8 +140,15 @@ class TelegramAlerter:
         }
         try:
             res = requests.post(self.api_url, json=payload, timeout=8)
-            return res.status_code == 200
+            if res.status_code == 200:
+                print(f"[TELEGRAM OK] Alert delivered to chat {self.chat_id}")
+                return True
+            else:
+                print(f"[TELEGRAM ERROR] HTTP {res.status_code}: {res.text}")
+                logger.error(f"Telegram alert delivery failed ({res.status_code}): {res.text}")
+                return False
         except Exception as e:
+            print(f"[TELEGRAM ERROR] Request failed: {e}")
             logger.error(f"Telegram alert delivery failed: {e}")
             return False
 
@@ -1666,20 +1673,26 @@ def get_next_market_open(now: datetime, config: BotConfig) -> datetime:
     else:
         return now
 
-def main():
-    parser = argparse.ArgumentParser(description="All-in-One NIFTY Options Algo Bot and Monitor")
-    parser.add_argument("--reset", action="store_true", help="Wipe all trade history and start completely fresh from scratch")
-    parser.add_argument("--status", action="store_true", help="Print current status and PnL without running live loop")
-    parser.add_argument("--open-dash", action="store_true", help="Open live HTML dashboard in default web browser")
-    args = parser.parse_args()
+def main(cli_args=None):
+    if cli_args is None:
+        parser = argparse.ArgumentParser(description="All-in-One NIFTY Options Algo Bot and Monitor")
+        parser.add_argument("--reset", action="store_true", help="Wipe all trade history and start completely fresh from scratch")
+        parser.add_argument("--status", action="store_true", help="Print current status and PnL without running live loop")
+        parser.add_argument("--open-dash", action="store_true", help="Open live HTML dashboard in default web browser")
+        parser.add_argument("--no-ui", action="store_true", help="Run console bot without Gradio web UI")
+        parser.add_argument("--weekly", action="store_true", help="Send Saturday Weekly Report to Telegram and exit")
+        parser.add_argument("--sunday", action="store_true", help="Run Sunday Nifty 50 RSI Scan to Telegram and exit")
+        args, _ = parser.parse_known_args()
+    else:
+        args = cli_args
 
     config = BotConfig()
 
-    if args.reset:
+    if getattr(args, "reset", False):
         reset_to_scratch(config)
         return
 
-    if args.open_dash:
+    if getattr(args, "open_dash", False):
         if os.path.exists(config.DASHBOARD_FILE):
             webbrowser.open(os.path.abspath(config.DASHBOARD_FILE))
             print(f"Opened {config.DASHBOARD_FILE} in browser.")
@@ -1705,7 +1718,7 @@ def main():
     initial_state = get_market_state(now, config)
     next_open = get_next_market_open(now, config)
 
-    if args.status:
+    if getattr(args, "status", False):
         quote = session.get_spot_quote()
         spot = float(quote.get("ltp", 0.0)) if quote else 0.0
         daily = engine.pnl.get_daily_stats()
@@ -2014,8 +2027,11 @@ def ui_send_weekly_report():
     try:
         msg = generate_saturday_weekly_report()
         alerter = TelegramAlerter(BotConfig.TELEGRAM_BOT_TOKEN, BotConfig.TELEGRAM_CHAT_ID)
-        alerter.send(msg)
-        return "✅ Saturday Weekly Report dispatched to Telegram GOLD Zone!"
+        ok = alerter.send(msg)
+        if ok:
+            return "✅ Saturday Weekly Report dispatched to Telegram GOLD Zone!"
+        else:
+            return "❌ Telegram delivery failed. Check bot token, chat ID, and permissions."
     except Exception as e:
         return f"❌ Error: {e}"
 
@@ -2023,8 +2039,11 @@ def ui_send_sunday_scan():
     try:
         msg = generate_sunday_nifty50_rsi_analysis()
         alerter = TelegramAlerter(BotConfig.TELEGRAM_BOT_TOKEN, BotConfig.TELEGRAM_CHAT_ID)
-        alerter.send(msg)
-        return "✅ Sunday Nifty 50 RSI Scan dispatched to Telegram GOLD Zone!"
+        ok = alerter.send(msg)
+        if ok:
+            return "✅ Sunday Nifty 50 RSI Scan dispatched to Telegram GOLD Zone!"
+        else:
+            return "❌ Telegram delivery failed. Check bot token, chat ID, and permissions."
     except Exception as e:
         return f"❌ Error: {e}"
 
@@ -2047,7 +2066,8 @@ if __name__ == "__main__":
     parser.add_argument("--sunday", action="store_true", help="Run Sunday Nifty 50 RSI Scan to Telegram and exit")
     parser.add_argument("--status", action="store_true", help="Check status and exit")
     parser.add_argument("--reset", action="store_true", help="Reset bot state and history to Rs 50,000 clean")
-    args = parser.parse_args()
+    parser.add_argument("--open-dash", action="store_true", help="Open HTML dashboard in browser")
+    args, _ = parser.parse_known_args()
 
     if args.weekly:
         print("[CLI] Generating and sending Saturday Weekly Audit Report...")
@@ -2075,11 +2095,11 @@ if __name__ == "__main__":
 
     if args.no_ui:
         print("[INIT] Starting NIFTY Algo Trading Engine in console-only mode...")
-        main()
+        main(args)
     else:
         # Start the trading engine in a background daemon thread
         print("[INIT] Starting NIFTY Algo Trading Engine daemon thread...")
-        bot_thread = threading.Thread(target=main, daemon=True)
+        bot_thread = threading.Thread(target=main, args=(args,), daemon=True)
         bot_thread.start()
 
         # Launch Gradio server on port 7860

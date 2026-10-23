@@ -1,0 +1,5 @@
+date,day,playbook,instrument,entry_time,entry_prem,exit_time,exit_prem_1,exit_prem_2,pts_lot1,pts_lot2,avg_pts,gross_pnl,costs,net_pnl,result,is_win
+2026-10-21,Wednesday,Gap-Up R1 Polarity Bounce,NIFTY 23000 CE,10:05,67.46,12:00,17.04,17.04,-50.42,-50.42,-50.42,-6554.77,55.46,-6610.22,STOP LOSS (-50 pts on 2 Lots),False
+2026-10-21,Wednesday,S1 Support Breakdown,NIFTY 22750 PE,12:05,60.62,15:00,100.22,100.22,39.6,39.6,39.6,5147.55,68.42,5079.13,EOD AUTO SQUARE-OFF (2 Lots),True
+2026-10-22,Thursday,S1 Support Breakdown,NIFTY 22550 PE,11:45,19.06,15:00,11.78,11.78,-7.28,-7.28,-7.28,-946.04,50.66,-996.7,EOD AUTO SQUARE-OFF (2 Lots),False
+2026-10-23,Friday,R1 Resistance Reversal,NIFTY 22700 PE,09:25,139.06,12:45,237.17,336.67,98.12,197.62,147.87,19222.62,105.15,19117.48,TARGET 1 (+100) & TARGET 2 (+200) RUNNER VICTORY,True
